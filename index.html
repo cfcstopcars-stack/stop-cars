@@ -376,7 +376,6 @@
   .agenda-block.falta{background:var(--red);}
   .conflict-warning{background:#fde2e2;color:#b8272c;border:1px solid #f5b8ba;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-bottom:12px;}
   .conflict-warning ul{margin:4px 0 0;padding-left:18px;}
-  .status-pill.ativo{background:#e2f0ff;color:#1e5fbf;}
 </style>
 </head>
 <body>
@@ -397,7 +396,6 @@
       <input type="password" id="loginSenha" required autocomplete="current-password" placeholder="••••••••">
       <div class="erro" id="loginErro">Email ou senha incorretos. Confira e tente de novo.</div>
       <div class="erro" id="loginErroConfig" style="display:none;">Não foi possível conectar ao Supabase. Confira se SUPABASE_URL e SUPABASE_ANON_KEY (no fim deste arquivo) foram preenchidos com os dados do seu projeto.</div>
-      <p id="debugStatus" style="font-size:11px;color:#9aa0b0;margin-top:14px;"></p>
       <button type="submit" id="btnLogin">Entrar</button>
     </form>
   </div>
@@ -1624,6 +1622,17 @@
     return d.toLocaleDateString('pt-BR');
   }
   const uid = (prefixo) => prefixo + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  // Traduz o erro técnico do Postgres quando alguém tenta excluir um
+  // registro que ainda está referenciado em outro lugar (ex: excluir um
+  // instrutor que já tem aulas na Agenda). O banco corretamente impede a
+  // exclusão — aqui só trocamos a mensagem por uma que faça sentido pra
+  // quem está usando o sistema.
+  function mensagemErroExclusao(error){
+    if(error && error.message && error.message.includes('foreign key constraint')){
+      return 'Não é possível excluir: este registro ainda está sendo usado em outra parte do sistema (ex: uma aula, manutenção ou lançamento vinculado a ele). Remova ou reatribua esses vínculos primeiro.';
+    }
+    return 'Erro ao excluir: ' + (error?.message || 'tente novamente.');
+  }
   function formatMoney(v){
     return 'R$ ' + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
   }
@@ -1728,8 +1737,6 @@
   let sb;
   function debug(msg){
     console.log('[Stop Cars]', msg);
-    const el = document.getElementById('debugStatus');
-    if(el) el.textContent = msg;
   }
   debug('Carregando…');
   try{
@@ -1792,7 +1799,30 @@
 
   async function sair(){
     await sb.auth.signOut();
+    resetEstadoApp();
     mostrarSomente(elLogin);
+  }
+  // Limpa tudo que ficou em memória do usuário anterior. Essencial se o
+  // computador é compartilhado (ex: recepção) e duas pessoas diferentes
+  // logam na mesma aba sem dar F5 entre uma sessão e outra — sem isso, o
+  // app poderia achar que "já carregou" os dados e reaproveitar em tela
+  // informação de quem saiu, ou pular a nova busca (que já viria filtrada
+  // certinho pela RLS do novo usuário).
+  function resetEstadoApp(){
+    papelAtual = null;
+    cadastrosCarregados = false;
+    frotaCarregada = false;
+    funilCarregado = false;
+    alunosCarregado = false;
+    financeiroCarregado = false;
+    dashboardCarregado = false;
+    agendaCarregada = false;
+    instrutores = []; colaboradores = []; fornecedores = []; categoriasDespesa = [];
+    veiculos = []; manutencoes = [];
+    leads = []; stages = [];
+    alunos = []; etapasAluno = [];
+    contasReceber = []; contasPagar = []; despesasFixas = [];
+    agendamentos = [];
   }
   document.getElementById('btnSair').addEventListener('click', sair);
   document.getElementById('btnSairInstrutor').addEventListener('click', sair);
@@ -1999,7 +2029,7 @@
     if(!editingInstrutorId) return;
     if(!confirm('Excluir este instrutor? Isso não pode ser desfeito.')) return;
     const { error } = await sb.from('instrutores').delete().eq('id', editingInstrutorId);
-    if(error){ showToast('Erro ao excluir: ' + error.message); return; }
+    if(error){ showToast(mensagemErroExclusao(error)); return; }
     document.getElementById('instrutorModalOverlay').classList.remove('open');
     showToast('Instrutor excluído.');
     await carregarCadastros(true);
@@ -2157,7 +2187,7 @@
     if(!editingFornecedorId) return;
     if(!confirm('Excluir este fornecedor? Isso não pode ser desfeito.')) return;
     const { error } = await sb.from('fornecedores').delete().eq('id', editingFornecedorId);
-    if(error){ showToast('Erro ao excluir: ' + error.message); return; }
+    if(error){ showToast(mensagemErroExclusao(error)); return; }
     document.getElementById('fornecedorModalOverlay').classList.remove('open');
     showToast('Fornecedor excluído.');
     await carregarCadastros(true);
@@ -2355,7 +2385,7 @@
     if(!editingVeiculoId) return;
     if(!confirm('Excluir este veículo? Isso não pode ser desfeito.')) return;
     const { error } = await sb.from('veiculos').delete().eq('id', editingVeiculoId);
-    if(error){ showToast('Erro ao excluir: ' + error.message); return; }
+    if(error){ showToast(mensagemErroExclusao(error)); return; }
     document.getElementById('veiculoModalOverlay').classList.remove('open');
     showToast('Veículo excluído.');
     await carregarFrota(true);
@@ -2814,7 +2844,7 @@
     if(!editingLeadId) return;
     if(!confirm('Excluir este lead? Essa ação não pode ser desfeita.')) return;
     const { error } = await sb.from('leads').delete().eq('id', editingLeadId);
-    if(error){ showToast('Erro ao excluir: ' + error.message); return; }
+    if(error){ showToast(mensagemErroExclusao(error)); return; }
     document.getElementById('modalOverlay').classList.remove('open');
     showToast('Lead excluído.');
     await carregarFunil(true);
@@ -3357,7 +3387,7 @@
     if(!editingAlunoId) return;
     if(!confirm('Excluir este aluno? Essa ação não pode ser desfeita.')) return;
     const { error } = await sb.from('alunos').delete().eq('id', editingAlunoId);
-    if(error){ showToast('Erro ao excluir: ' + error.message); return; }
+    if(error){ showToast(mensagemErroExclusao(error)); return; }
     document.getElementById('alunoModalOverlay').classList.remove('open');
     showToast('Aluno excluído.');
     await carregarAlunosModulo(true);
