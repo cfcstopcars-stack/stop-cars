@@ -259,8 +259,30 @@
   .checkbox-row{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;}
   .checkbox-row input{width:16px;height:16px;}
 
+  .stats-row.stats-6{grid-template-columns:repeat(3,1fr);}
+  .stat-card .stat-sub{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.35;}
+  .stat-card .stat-sub.up{color:#0d7a45;}
+  .stat-card .stat-sub.down{color:#b8272c;}
+  table.data-table tfoot td{font-weight:700;background:#faf9f5;border-top:2px solid var(--line);}
+  table.data-table td.num{white-space:nowrap;}
+  .aviso-dados{background:#fff8e1;border:1px solid #f1d98a;color:#7a5b00;border-radius:10px;padding:10px 14px;font-size:12.5px;margin:-6px 0 16px;line-height:1.5;}
+  .stats-row.stats-4{grid-template-columns:repeat(4,1fr);}
+  .seg-control{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper-2);}
+  .seg-control button{border:none;background:transparent;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;}
+  .seg-control button.active{background:var(--ink);color:#fff;}
+  .badge-servico{background:#efe7ff;color:#5b3aa8;border:1px solid #d9c9ff;}
+  .servico-linha input[type=text], .servico-linha input[type=number]{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-family:inherit;font-size:13px;background:#fafaf8;}
+  .vs-venda{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.8px;}
+  .vs-venda:last-child{border-bottom:none;}
+  .vs-venda.cancelada{opacity:.55;text-decoration:line-through;}
+  .nota-rodape{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.55;max-width:900px;}
+  .valor-aviso{color:#966600;cursor:help;font-weight:700;}
+  .etapa-tag{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+  .etapa-tag i{width:8px;height:8px;border-radius:50%;display:inline-block;}
   @media (max-width:900px){
     .stats-row{grid-template-columns:repeat(2,1fr);}
+    .stats-row.stats-6{grid-template-columns:repeat(2,1fr);}
+    .stats-row.stats-4{grid-template-columns:repeat(2,1fr);}
     .form-grid2{grid-template-columns:1fr;}
   }
 
@@ -465,11 +487,11 @@
 
         <div class="panels-row">
           <div class="panel">
-            <h3>Distribuição atual do funil</h3>
+            <h3>Distribuição do funil no período</h3>
             <div id="funnelViz"></div>
           </div>
           <div class="panel">
-            <h3>Leads por origem</h3>
+            <h3>Leads por origem (período)</h3>
             <div id="listaOrigens" style="font-size:13px;color:var(--muted);"></div>
           </div>
         </div>
@@ -516,6 +538,7 @@
           <input type="text" id="alunoSearchInput" placeholder="Buscar por nome ou telefone...">
           <select id="alunoFilterCategoria"><option value="todos">Todas as categorias</option></select>
           <button class="btn btn-yellow" id="btnNovoAluno">+ Novo Aluno</button>
+          <button class="btn btn-ghost" id="btnVendaServico">+ Venda de serviço</button>
           <div class="toolbar-right">
             <button class="btn btn-ghost" id="btnAlunoStages">Gerenciar etapas</button>
           </div>
@@ -537,13 +560,57 @@
     <div id="view-cadastros" class="view">
       <div class="container">
         <div class="subtabs">
-          <button class="subtab-btn active" data-subtab="cad-instrutores">Instrutores</button>
+          <button class="subtab-btn active" data-subtab="cad-alunos">Alunos</button>
+          <button class="subtab-btn" data-subtab="cad-instrutores">Instrutores</button>
           <button class="subtab-btn" data-subtab="cad-colaboradores">Colaboradores</button>
           <button class="subtab-btn" data-subtab="cad-fornecedores">Fornecedores</button>
           <button class="subtab-btn" data-subtab="cad-categorias">Categorias de Despesa</button>
+          <button class="subtab-btn" data-subtab="cad-servicos">Serviços</button>
         </div>
 
-        <div class="subview active" id="subview-cad-instrutores">
+        <div class="subview active" id="subview-cad-alunos">
+          <div class="filter-bar">
+            <input type="text" id="cadAlunoSearch" placeholder="Buscar por nome, telefone, RENACH ou CPF..." style="min-width:260px;">
+            <select id="cadAlunoCategoria"><option value="todas">Todas as categorias</option></select>
+            <select id="cadAlunoEtapa"><option value="todas">Todas as etapas</option></select>
+            <select id="cadAlunoInstrutor"><option value="todos">Todos os instrutores</option></select>
+            <select id="cadAlunoTipo">
+              <option value="todos">Todos os cadastros</option>
+              <option value="cnh">Alunos da CNH</option>
+              <option value="servico">Clientes de serviço</option>
+            </select>
+            <select id="cadAlunoOrdem">
+              <option value="nome">Ordem: nome (A–Z)</option>
+              <option value="recentes">Ordem: matrícula mais recente</option>
+              <option value="antigos">Ordem: matrícula mais antiga</option>
+              <option value="valor">Ordem: maior valor da CNH</option>
+            </select>
+          </div>
+          <div class="period-quick" data-module="cad-alunos">
+            <button data-preset="mes-atual">Matriculados este mês</button>
+            <button data-preset="mes-passado">Mês passado</button>
+            <button data-preset="3-meses">Últimos 3 meses</button>
+            <button data-preset="tudo">Todos</button>
+            <input type="date" id="cadAlunoDe" title="Matrícula de" style="margin-left:8px;">
+            <input type="date" id="cadAlunoAte" title="Matrícula até">
+          </div>
+          <div class="hidden-count-note" id="cadAlunoHiddenNote"></div>
+          <div class="filter-bar" style="margin-bottom:12px;">
+            <div class="filter-summary" id="cadAlunoResumo" style="margin:0;"></div>
+            <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-ghost" id="btnCadAlunosCsv">Exportar CSV</button>
+              <button class="btn btn-yellow" id="btnCadNovoAluno">+ Novo Aluno</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" style="min-width:980px;">
+              <thead><tr><th>Nome</th><th>Telefone</th><th>Cat.</th><th>RENACH</th><th>CPF</th><th>Instrutor</th><th>Etapa</th><th>Matrícula</th><th>Valor da CNH</th><th></th></tr></thead>
+              <tbody id="tbodyCadAlunos"><tr><td colspan="10" class="cell-muted">Carregando…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subview" id="subview-cad-instrutores">
           <div class="filter-bar">
             <input type="text" id="cadInstrutorSearch" placeholder="Buscar por nome ou telefone...">
             <button class="btn btn-yellow" id="btnNovoInstrutor" style="margin-left:auto;">+ Novo Instrutor</button>
@@ -578,6 +645,22 @@
             <table class="data-table">
               <thead><tr><th>Nome</th><th>Documento</th><th>Categoria</th><th>Telefone</th><th></th></tr></thead>
               <tbody id="tbodyFornecedores"><tr><td colspan="5" class="cell-muted">Carregando…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="subview" id="subview-cad-servicos">
+          <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Serviços vendidos além da matrícula (aulas extras, reciclagem, adição de categoria...). Eles aparecem na tela <b>Venda de serviço</b> (em Alunos) e no Dashboard de Vendas. Um serviço <b>inativo</b> deixa de ser oferecido em novas vendas, mas o histórico das vendas já feitas continua.</div>
+          <div class="filter-bar" id="servicosNovoBar">
+            <input type="text" id="novoServicoNome" placeholder="Nome do serviço (ex: Aula de baliza)" style="min-width:260px;">
+            <input type="number" id="novoServicoValor" min="0" step="0.01" placeholder="Valor sugerido (opcional)" style="max-width:200px;">
+            <button class="btn btn-yellow" id="btnAddServico">+ Adicionar serviço</button>
+          </div>
+          <div class="aviso-dados" id="servicosAviso" style="display:none;"></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Serviço</th><th>Valor sugerido</th><th>Situação</th><th></th></tr></thead>
+              <tbody id="tbodyServicos"><tr><td colspan="4" class="cell-muted">Carregando…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -798,13 +881,73 @@
     <div id="view-dashboard" class="view">
       <div class="container">
         <div class="subtabs">
-          <button class="subtab-btn active" data-subtab="dash-financeiro">Dashboard Financeiro</button>
+          <button class="subtab-btn active" data-subtab="dash-cnh">Vendas</button>
+          <button class="subtab-btn" data-subtab="dash-financeiro">Dashboard Financeiro</button>
           <button class="subtab-btn" data-subtab="dash-vendas">Relatório de Vendas</button>
           <button class="subtab-btn" data-subtab="dash-dre">DRE</button>
           <button class="subtab-btn" data-subtab="dash-fluxo">Fluxo de Caixa</button>
         </div>
 
-        <div class="subview active" id="subview-dash-financeiro">
+        <div class="subview active" id="subview-dash-cnh">
+          <div class="filter-bar">
+            <button class="btn btn-ghost" id="vendasMesAnterior" title="Mês anterior">◀</button>
+            <input type="month" id="vendasMes">
+            <button class="btn btn-ghost" id="vendasMesProximo" title="Próximo mês">▶</button>
+            <button class="btn btn-ghost" id="vendasMesAtual">Este mês</button>
+            <div class="seg-control" id="vendasSeg">
+              <button data-seg="tudo" class="active">Tudo</button>
+              <button data-seg="cnh">CNH</button>
+              <button data-seg="servicos">Serviços</button>
+            </div>
+            <button class="btn btn-ghost" id="btnVendasCsv" style="margin-left:auto;">Exportar CNH (CSV)</button>
+          </div>
+
+          <div id="vendasResumoBox">
+            <div class="section-title" style="margin-top:4px;">Resumo do mês — CNH + serviços</div>
+            <div class="stats-row stats-4" id="vendasResumoRow"></div>
+          </div>
+
+          <div id="vendasSecCnh">
+            <div class="section-title">CNH</div>
+            <div class="stats-row stats-6" id="vendasStatsRow"></div>
+            <div class="aviso-dados" id="vendasAviso" style="display:none;"></div>
+            <div class="filter-summary" id="vendasPorCategoria"></div>
+            <div class="table-wrap">
+              <table class="data-table" style="min-width:1080px;">
+                <thead><tr><th>Matrícula</th><th>Aluno</th><th>Etapa</th><th>Valor da CNH</th><th>Parcelas</th><th>Vencimentos</th><th>Prazo médio</th><th>Recebido</th><th>A receber</th><th>Situação</th></tr></thead>
+                <tbody id="tbodyVendasCnh"><tr><td colspan="10" class="cell-muted">Carregando…</td></tr></tbody>
+                <tfoot id="tfootVendasCnh"></tfoot>
+              </table>
+            </div>
+            <div class="nota-rodape">
+              <b>Como ler:</b> cada aluno matriculado no mês conta como uma CNH vendida. O <b>valor</b> é o valor total informado na matrícula.
+              O <b>prazo médio</b> é o número de dias entre a matrícula e cada vencimento, ponderado pelo valor de cada parcela
+              ("À vista" = tudo vence na data da matrícula). O <b>ticket médio</b> considera só as vendas com valor informado.
+              As parcelas vêm dos lançamentos criados na matrícula.
+            </div>
+          </div>
+
+          <div id="vendasSecServ">
+            <div class="section-title">Outros serviços</div>
+            <div class="aviso-dados" id="vendasServAviso" style="display:none;"></div>
+            <div class="stats-row stats-4" id="vendasServStats"></div>
+            <div class="filter-summary" id="vendasPorServico"></div>
+            <div class="table-wrap">
+              <table class="data-table" style="min-width:1000px;">
+                <thead><tr><th>Data</th><th>Cliente</th><th>Serviço</th><th>Qtd</th><th>Valor</th><th>Parcelas</th><th>Prazo médio</th><th>Recebido</th><th>A receber</th><th>Situação</th></tr></thead>
+                <tbody id="tbodyVendasServ"><tr><td colspan="10" class="cell-muted">Carregando…</td></tr></tbody>
+                <tfoot id="tfootVendasServ"></tfoot>
+              </table>
+            </div>
+            <div style="margin-top:10px;"><button class="btn btn-ghost" id="btnVendasServCsv">Exportar serviços (CSV)</button></div>
+            <div class="nota-rodape">
+              <b>Como ler:</b> cada venda de serviço registrada em Alunos → <b>Venda de serviço</b> no mês conta como uma venda (vendas canceladas não entram).
+              O prazo médio é contado a partir da data da venda, e o ticket médio é o valor médio por venda.
+            </div>
+          </div>
+        </div>
+
+        <div class="subview" id="subview-dash-financeiro">
           <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Um mês por linha — recebido, ainda a receber, e o que já foi pago no mesmo mês.</div>
           <div class="table-wrap">
             <table class="data-table">
@@ -1245,6 +1388,13 @@
         <input type="text" id="afNome" placeholder="Nome completo">
         <div class="field-error" id="errAfNome">Informe o nome do aluno.</div>
       </div>
+      <div class="form-row" id="afTipoBlock">
+        <label>Tipo de cadastro</label>
+        <select id="afTipo">
+          <option value="cnh">Aluno da CNH (entra na jornada)</option>
+          <option value="servico">Cliente de serviços (fora da jornada da CNH)</option>
+        </select>
+      </div>
       <div class="form-grid2">
         <div class="form-row">
           <label>Telefone / WhatsApp</label>
@@ -1271,26 +1421,33 @@
           <label>Instrutor responsável</label>
           <select id="afInstrutor"><option value="">Nenhum / a definir</option></select>
         </div>
-        <div class="form-row">
+        <div class="form-row" id="afDataMatriculaBlock">
           <label>Data de matrícula</label>
           <input type="date" id="afDataMatricula">
         </div>
       </div>
-      <div class="form-row">
-        <label>Valor total da venda (CNH)</label>
-        <input type="number" id="afValorTotalCnh" min="0" step="0.01" placeholder="opcional">
-      </div>
-      <div class="form-row">
-        <label>Etapa</label>
-        <select id="afEtapa"></select>
-      </div>
-      <div class="form-row motivo-block" id="motivoDesistenciaBlock">
-        <label>Motivo da desistência</label>
-        <textarea id="afMotivo" placeholder="Por que o aluno desistiu?"></textarea>
+      <div id="afBlocoCnh">
+        <div class="form-row">
+          <label>Valor total da venda (CNH)</label>
+          <input type="number" id="afValorTotalCnh" min="0" step="0.01" placeholder="opcional">
+        </div>
+        <div class="form-row">
+          <label>Etapa</label>
+          <select id="afEtapa"></select>
+        </div>
+        <div class="form-row motivo-block" id="motivoDesistenciaBlock">
+          <label>Motivo da desistência</label>
+          <textarea id="afMotivo" placeholder="Por que o aluno desistiu?"></textarea>
+        </div>
       </div>
       <div class="form-row">
         <label>Observações</label>
         <textarea id="afObs" placeholder="Notas sobre o andamento do aluno..."></textarea>
+      </div>
+      <div id="afServicosBox" style="display:none;">
+        <div class="section-title" style="margin-top:18px;">Serviços contratados</div>
+        <div id="afServicosLista" class="cell-muted">Carregando…</div>
+        <button type="button" class="btn btn-ghost" id="btnAfNovaVenda" style="margin-top:8px;">+ Nova venda de serviço</button>
       </div>
       <div class="modal-actions">
         <div class="left-actions">
@@ -1450,7 +1607,7 @@
       <div class="form-grid2">
         <div class="form-row">
           <label>Número de parcelas</label>
-          <input type="number" id="mfParcelas" min="1" step="1" value="1">
+          <input type="number" id="mfParcelas" min="1" max="48" step="1" value="1">
         </div>
         <div class="form-row">
           <label>Vencimento da 1ª parcela</label>
@@ -1490,6 +1647,84 @@
         <div class="left-actions">
           <button type="button" class="btn btn-ghost" id="btnCancelMatriculaModal">Cancelar</button>
           <button type="submit" class="btn btn-primary">Matricular</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Venda de serviço modal -->
+<div class="modal-overlay" id="vendaServicoModalOverlay">
+  <div class="modal modal-wide">
+    <h2>Venda de serviço</h2>
+    <div style="font-size:12.5px;color:var(--muted);margin:-8px 0 14px;">Registra a venda no cadastro do aluno e gera os lançamentos em Contas a Receber.</div>
+    <form id="vendaServicoForm" novalidate>
+      <div class="form-row">
+        <label>Quem está comprando?</label>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+          <label class="checkbox-row"><input type="radio" name="vsModo" value="existente" checked> Aluno já cadastrado</label>
+          <label class="checkbox-row"><input type="radio" name="vsModo" value="novo"> Pessoa ainda não cadastrada</label>
+        </div>
+      </div>
+      <div id="vsBlocoExistente">
+        <div class="form-row">
+          <label>Buscar aluno</label>
+          <input type="text" id="vsBusca" placeholder="Nome, telefone, CPF ou RENACH...">
+          <select id="vsAluno" size="6" style="width:100%;margin-top:6px;"></select>
+          <div class="field-error" id="errVsAluno">Selecione o aluno.</div>
+        </div>
+      </div>
+      <div id="vsBlocoNovo" style="display:none;">
+        <div class="form-grid2">
+          <div class="form-row"><label>Nome</label><input type="text" id="vsNovoNome" placeholder="Nome completo"><div class="field-error" id="errVsNovoNome">Informe o nome.</div></div>
+          <div class="form-row"><label>Telefone / WhatsApp</label><input type="text" id="vsNovoTelefone" placeholder="(00) 00000-0000"><div class="field-error" id="errVsNovoTelefone">Informe o telefone.</div></div>
+        </div>
+        <div class="form-grid2">
+          <div class="form-row"><label>Categoria da pessoa</label><select id="vsNovoCategoria"></select></div>
+          <div class="form-row"><label>CPF <span style="font-weight:400;color:var(--muted);">(opcional)</span></label><input type="text" id="vsNovoCpf" placeholder="000.000.000-00"></div>
+        </div>
+        <div class="cell-muted" style="font-size:12px;margin:-4px 0 6px;">A pessoa é cadastrada como <b>cliente de serviços</b>: aparece em Cadastros → Alunos, mas fica fora da jornada e das contagens de CNH. Dá para mudar para aluno da CNH depois.</div>
+      </div>
+      <div class="section-title">Serviço</div>
+      <div class="form-grid2">
+        <div class="form-row"><label>Serviço</label><select id="vsServico"></select><div class="field-error" id="errVsServico">Selecione o serviço.</div></div>
+        <div class="form-row"><label>Quantidade</label><input type="number" id="vsQtd" min="1" step="1" value="1"></div>
+      </div>
+      <div class="form-grid2">
+        <div class="form-row"><label>Valor unitário</label><input type="number" id="vsValorUnit" min="0" step="0.01" placeholder="0,00"></div>
+        <div class="form-row"><label>Valor total da venda</label><input type="number" id="vsValorTotal" min="0" step="0.01" placeholder="0,00"><div class="field-error" id="errVsValorTotal">Informe o valor total da venda.</div></div>
+      </div>
+      <div class="section-title">Pagamento</div>
+      <div class="form-grid2">
+        <div class="form-row"><label>Número de parcelas</label><input type="number" id="vsParcelas" min="1" max="48" step="1" value="1"></div>
+        <div class="form-row"><label>Vencimento da 1ª parcela</label><input type="date" id="vsPrimeiroVencimento"></div>
+      </div>
+      <div class="form-row">
+        <label>Forma de pagamento padrão</label>
+        <select id="vsForma">
+          <option value="Pix">Pix</option><option value="Dinheiro">Dinheiro</option><option value="Cartão de Crédito">Cartão de Crédito</option>
+          <option value="Cartão de Débito">Cartão de Débito</option><option value="Boleto">Boleto</option><option value="Transferência">Transferência</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <label style="margin:0;">Parcelas</label>
+          <button type="button" class="btn btn-ghost" id="btnVsGerarParcelas" style="padding:5px 10px;font-size:12px;">↻ Gerar/Redistribuir parcelas</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table parcelas-table">
+            <thead><tr><th style="width:60px;">Parcela</th><th>Valor</th><th>Vencimento</th><th>Forma de pagamento</th></tr></thead>
+            <tbody id="vsParcelasBody"></tbody>
+          </table>
+        </div>
+        <div class="parcelas-check" id="vsParcelasCheck"></div>
+      </div>
+      <div class="form-row"><label>Observações</label><textarea id="vsObs"></textarea></div>
+      <div class="modal-actions">
+        <div class="left-actions"></div>
+        <div class="left-actions">
+          <button type="button" class="btn btn-ghost" id="btnCancelVendaServico">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar venda</button>
         </div>
       </div>
     </form>
@@ -1633,10 +1868,110 @@
     }
     return 'Erro ao excluir: ' + (error?.message || 'tente novamente.');
   }
+  // Salva UM campo de uma etapa (cor, nome, tipo). Só atualiza a tela depois
+  // que o banco confirmar; se der erro, avisa e redesenha a lista com o valor
+  // antigo (antes, a tela mostrava a mudança como salva mesmo quando falhava).
+  async function salvarCampoEtapa(tabela, etapa, campo, valor, rerender){
+    const { error } = await sb.from(tabela).update({ [campo]: valor }).eq('id', etapa.id);
+    if(error){
+      showToast('Não foi possível salvar a etapa: ' + error.message);
+      rerender();
+      return false;
+    }
+    etapa[campo] = valor;
+    return true;
+  }
+  // Troca a ordem de duas etapas. Se qualquer uma das gravações falhar, desfaz a
+  // outra para não deixar duas etapas com a mesma ordem no banco.
+  async function trocarOrdemEtapas(tabela, a, b, rerender){
+    const ordemA = a.ordem, ordemB = b.ordem;
+    const [r1, r2] = await Promise.all([
+      sb.from(tabela).update({ ordem: ordemB }).eq('id', a.id),
+      sb.from(tabela).update({ ordem: ordemA }).eq('id', b.id),
+    ]);
+    if(r1.error || r2.error){
+      if(!r1.error) await sb.from(tabela).update({ ordem: ordemA }).eq('id', a.id);
+      if(!r2.error) await sb.from(tabela).update({ ordem: ordemB }).eq('id', b.id);
+      showToast('Não foi possível reordenar as etapas: ' + (r1.error || r2.error).message);
+      rerender();
+      return false;
+    }
+    a.ordem = ordemB; b.ordem = ordemA;
+    rerender();
+    return true;
+  }
+  // O Supabase devolve no máximo 1.000 linhas por consulta. Esta função busca
+  // página por página até acabar, para listas que podem passar disso (alunos,
+  // parcelas). Devolve { data, error } igual ao supabase-js, então é só trocar.
+  async function selecionarTudo(tabela, colunas, ordem, filtros){
+    colunas = colunas || '*'; ordem = ordem || 'id';
+    const TAM = 1000;
+    let todos = [];
+    for(let ini = 0; ; ini += TAM){
+      let consulta = sb.from(tabela).select(colunas);
+      (filtros || []).forEach(([coluna, valor]) => { consulta = consulta.eq(coluna, valor); });   // filtros opcionais: igualdade
+      const { data, error } = await consulta.order(ordem).range(ini, ini + TAM - 1);
+      if(error) return { data: null, error };
+      if(!data || data.length === 0) break;
+      todos = todos.concat(data);
+    }
+    return { data: todos, error: null };
+  }
+  // CSV para Excel em português: separador ";", BOM UTF-8 (acentos) e proteção
+  // contra "injeção de fórmula" (células que começam com = + - @ viram texto).
+  function csvCelula(v){
+    let s = (v === null || v === undefined) ? '' : String(v);
+    if(/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function montarCsv(cabecalhos, linhas){
+    return '\ufeff' + [cabecalhos, ...linhas].map(l => l.map(csvCelula).join(';')).join('\r\n');
+  }
+  function baixarCsv(nomeArquivo, cabecalhos, linhas){
+    const blob = new Blob([montarCsv(cabecalhos, linhas)], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nomeArquivo;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 1500);
+  }
+  function numeroCsv(v){ return Number(v || 0).toFixed(2).replace('.', ','); }
+  function dataBR(iso){
+    const d = dataLocalISO(iso);
+    if(!d) return '';
+    const [y,m,dd] = d.split('-');
+    return `${dd}/${m}/${y}`;
+  }
+  // Dias corridos entre duas datas 'YYYY-MM-DD' (b - a), sem efeito de fuso.
+  function diasEntre(isoA, isoB){
+    const [ya,ma,da] = String(isoA).slice(0,10).split('-').map(Number);
+    const [yb,mb,db] = String(isoB).slice(0,10).split('-').map(Number);
+    return Math.round((Date.UTC(yb, mb-1, db) - Date.UTC(ya, ma-1, da)) / 86400000);
+  }
+  function somaMes(mesISO, delta){
+    const [y,m] = mesISO.split('-').map(Number);
+    const d = new Date(y, m-1+delta, 1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+  function soDigitos(s){ return String(s || '').replace(/\D/g, ''); }
+  // Pessoa que só compra serviços (reciclagem, aulas extras...) e não está na jornada da CNH.
+  function ehClienteServico(a){ return !!a && a.tipo_cadastro === 'servico'; }
   function formatMoney(v){
     return 'R$ ' + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
   }
-  function hojeISO(){ return new Date().toISOString().slice(0,10); }
+  // Data de hoje no fuso do navegador (Brasília). NÃO usar toISOString() para isso:
+  // ele devolve a data em UTC e, depois das 21h, já vira o dia seguinte.
+  function hojeISO(){ return ymdFromDate(new Date()); }
+  // Converte um valor de data/hora para 'YYYY-MM-DD' no fuso local. Aceita
+  // timestamptz do Supabase (vem em UTC, ex.: 2026-10-01T01:30:00+00:00, que
+  // em Brasília ainda é 30/09) e datas simples 'YYYY-MM-DD'.
+  function dataLocalISO(valor){
+    if(!valor) return '';
+    const s = String(valor);
+    if(s.length <= 10) return s;
+    const d = new Date(s);
+    return isNaN(d) ? s.slice(0,10) : ymdFromDate(d);
+  }
 
   // ---------- Filtro rápido de período (Funil, Alunos, Financeiro, Frota, Agenda) ----------
   // Por padrão cada módulo mostra só o mês atual. Os botões de atalho preenchem
@@ -1659,12 +1994,12 @@
   }
   function isInPeriod(dataStr, de, ate){
     if(!dataStr) return true;
-    const d = String(dataStr).slice(0,10);
+    const d = dataLocalISO(dataStr);
     if(de && d < de) return false;
     if(ate && d > ate) return false;
     return true;
   }
-  function initPeriodQuick(moduleKey, deId, ateId, onChange){
+  function initPeriodQuick(moduleKey, deId, ateId, onChange, presetPadrao){
     const container = document.querySelector(`.period-quick[data-module="${moduleKey}"]`);
     const deEl = document.getElementById(deId), ateEl = document.getElementById(ateId);
     if(!container || !deEl || !ateEl) return;
@@ -1689,7 +2024,7 @@
     ateEl.addEventListener('change', marcarPersonalizado);
 
     const salvo = localStorage.getItem('stopcars-periodo-' + moduleKey);
-    applyPreset(salvo || 'mes-atual', false);
+    applyPreset(salvo || presetPadrao || 'mes-atual', false);
   }
   function updateHiddenCountNote(noteId, totalGeral, totalFiltrado){
     const el = document.getElementById(noteId);
@@ -1738,7 +2073,9 @@
   function debug(msg){
     console.log('[Stop Cars]', msg);
   }
-  debug('Carregando…');
+  const APP_VERSION = 'build 06/10/2026 · pacote 4';
+  debug('Carregando… [' + APP_VERSION + ']');
+  document.getElementById('appVersionFooter').textContent = 'Stop Cars · ' + APP_VERSION;
   try{
     if(typeof window.supabase === 'undefined'){
       throw new Error('Biblioteca do Supabase não carregou (cdn.jsdelivr.net bloqueado ou sem internet).');
@@ -1823,27 +2160,50 @@
     alunos = []; etapasAluno = [];
     contasReceber = []; contasPagar = []; despesasFixas = [];
     agendamentos = [];
+    vendasDados = null; vendasServUltimo = null;
+    servicos = []; servicosCarregados = false; servicosErro = null;
+    // Esvazia o que ficou desenhado (CPF, valores...) para o próximo usuário.
+    ['tbodyCadAlunos','tbodyVendasCnh','tfootVendasCnh','vendasStatsRow','vendasAviso','vendasPorCategoria','cadAlunoResumo',
+     'vendasResumoRow','vendasServStats','vendasPorServico','vendasServAviso','tbodyVendasServ','tfootVendasServ','tbodyServicos','afServicosLista'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.innerHTML = '';
+    });
   }
   document.getElementById('btnSair').addEventListener('click', sair);
   document.getElementById('btnSairInstrutor').addEventListener('click', sair);
 
   // ---------- NAVEGAÇÃO (mesmo padrão do apps-script-index.html) ----------
+  const SUBTITULO_VIEW = {
+    funil: 'Gestão de leads da autoescola — categorias A · B · AB',
+    alunos: 'Jornada do aluno até a CNH — categorias A · B · AB',
+    cadastros: 'Alunos, instrutores, colaboradores e fornecedores',
+    financeiro: 'Contas a receber e a pagar',
+    frota: 'Veículos, vencimentos e manutenções',
+    agenda: 'Aulas práticas — aluno, instrutor e veículo',
+    dashboard: 'Vendas (CNH e serviços), resultado financeiro e fluxo de caixa',
+  };
+  // Troca de tela. Centralizado aqui para ser usado tanto pelo menu quanto
+  // logo depois do login (sempre começa no Funil, nunca na tela do usuário
+  // anterior — importante em computador compartilhado).
+  function irParaView(nome){
+    const btn = document.querySelector(`.nav-item[data-view="${nome}"]`);
+    if(!btn) return;
+    if(btn.hasAttribute('data-somente-admin') && papelAtual !== 'admin') return;
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-' + nome).classList.add('active');
+    document.getElementById('topbarTitle').textContent = btn.textContent.trim();
+    document.getElementById('topbarSub').textContent = SUBTITULO_VIEW[nome] || '';
+    if(nome === 'cadastros'){ carregarCadastros(); carregarAlunosModulo(true); carregarServicos(true); }
+    if(nome === 'frota') carregarFrota();
+    if(nome === 'funil') carregarFunil();
+    if(nome === 'alunos') carregarAlunosModulo();
+    if(nome === 'financeiro') carregarFinanceiro();
+    if(nome === 'dashboard'){ carregarDashboard(); carregarVendasCnh(); }
+    if(nome === 'agenda') carregarAgenda(true);   // sempre traz a agenda atualizada (outras pessoas marcam aulas o dia todo)
+  }
   document.querySelectorAll('.nav-item').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const viewId = 'view-' + btn.dataset.view;
-      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-      document.getElementById(viewId).classList.add('active');
-      document.getElementById('topbarTitle').textContent = btn.textContent.trim();
-      if(btn.dataset.view === 'cadastros') carregarCadastros();
-      if(btn.dataset.view === 'frota') carregarFrota();
-      if(btn.dataset.view === 'funil') carregarFunil();
-      if(btn.dataset.view === 'alunos') carregarAlunosModulo();
-      if(btn.dataset.view === 'financeiro') carregarFinanceiro();
-      if(btn.dataset.view === 'dashboard') carregarDashboard();
-      if(btn.dataset.view === 'agenda') carregarAgenda();
-    });
+    btn.addEventListener('click', ()=> irParaView(btn.dataset.view));
   });
 
   // ---------- SUBTABS genéricas (dentro de Cadastros / Financeiro / etc.) ----------
@@ -1894,7 +2254,7 @@
     });
 
     mostrarSomente(elAppShell);
-    carregarFunil();
+    irParaView('funil');
   }
 
   // ---------- Agenda do instrutor (a consulta já vem filtrada pela RLS) ----------
@@ -2233,6 +2593,506 @@
   });
 
   // =====================================================================
+  // CADASTROS → ALUNOS (visão de tabela dos alunos matriculados)
+  // É a MESMA base do módulo Alunos (tabela `alunos`): não é uma cópia, então
+  // nunca fica desatualizada nem gera dois cadastros diferentes do mesmo aluno.
+  // =====================================================================
+  function restaurarSelect(sel, valorAnterior, padrao){
+    sel.value = valorAnterior;
+    if(sel.value !== valorAnterior) sel.value = padrao;
+  }
+  function fillFiltrosCadAlunos(){
+    const selCat = document.getElementById('cadAlunoCategoria');
+    const catAtual = selCat.value;
+    selCat.innerHTML = '<option value="todas">Todas as categorias</option>' + CATEGORIAS.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+    restaurarSelect(selCat, catAtual, 'todas');
+
+    const selEtapa = document.getElementById('cadAlunoEtapa');
+    const etapaAtual = selEtapa.value;
+    selEtapa.innerHTML = '<option value="todas">Todas as etapas</option><option value="__sem__">Sem etapa</option>' + sortedEtapasAluno().map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.nome)}</option>`).join('');
+    restaurarSelect(selEtapa, etapaAtual, 'todas');
+
+    const selInstr = document.getElementById('cadAlunoInstrutor');
+    const instrAtual = selInstr.value;
+    const nomes = [...new Set(alunos.map(a=>a.instrutor).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    selInstr.innerHTML = '<option value="todos">Todos os instrutores</option><option value="__sem__">Sem instrutor</option>' + nomes.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+    restaurarSelect(selInstr, instrAtual, 'todos');
+  }
+
+  function alunoCadForaDoPeriodo(a){
+    return !isInPeriod(a.data_matricula, document.getElementById('cadAlunoDe').value, document.getElementById('cadAlunoAte').value);
+  }
+  function filteredCadAlunos(){
+    const q = (document.getElementById('cadAlunoSearch').value || '').trim().toLowerCase();
+    const qDig = soDigitos(q);
+    const cat = document.getElementById('cadAlunoCategoria').value;
+    const etapa = document.getElementById('cadAlunoEtapa').value;
+    const instr = document.getElementById('cadAlunoInstrutor').value;
+    const tipo = document.getElementById('cadAlunoTipo').value;
+    const ordem = document.getElementById('cadAlunoOrdem').value;
+    const lista = alunos.filter(a=>{
+      if(tipo === 'servico' && !ehClienteServico(a)) return false;
+      if(tipo === 'cnh' && ehClienteServico(a)) return false;
+      if(cat !== 'todas' && a.categoria !== cat) return false;
+      if(etapa === '__sem__' && (etapaAlunoById(a.stage_id) || ehClienteServico(a))) return false;
+      if(etapa !== 'todas' && etapa !== '__sem__' && a.stage_id !== etapa) return false;
+      if(instr === '__sem__' && a.instrutor) return false;
+      if(instr !== 'todos' && instr !== '__sem__' && a.instrutor !== instr) return false;
+      if(alunoCadForaDoPeriodo(a)) return false;
+      if(q){
+        const texto = `${a.nome||''} ${a.telefone||''} ${a.renach||''} ${a.cpf||''}`.toLowerCase();
+        const achouTexto = texto.includes(q);
+        const achouDigitos = qDig.length >= 3 && soDigitos(`${a.telefone||''}${a.renach||''}${a.cpf||''}`).includes(qDig);
+        if(!achouTexto && !achouDigitos) return false;
+      }
+      return true;
+    });
+    const porNome = (x,y)=> String(x.nome||'').localeCompare(String(y.nome||''), 'pt-BR');
+    if(ordem === 'recentes') lista.sort((x,y)=> String(y.data_matricula||'').localeCompare(String(x.data_matricula||'')) || porNome(x,y));
+    else if(ordem === 'antigos') lista.sort((x,y)=> String(x.data_matricula||'9999').localeCompare(String(y.data_matricula||'9999')) || porNome(x,y));
+    else if(ordem === 'valor') lista.sort((x,y)=> Number(y.valor_total_cnh||0) - Number(x.valor_total_cnh||0) || porNome(x,y));
+    else lista.sort(porNome);
+    return lista;
+  }
+
+  function renderCadAlunosTable(){
+    const tbody = document.getElementById('tbodyCadAlunos');
+    const lista = filteredCadAlunos();
+    updateHiddenCountNote('cadAlunoHiddenNote', alunos.length, alunos.length - alunos.filter(alunoCadForaDoPeriodo).length);
+    const valorTotal = lista.reduce((s,a)=> s + Number(a.valor_total_cnh||0), 0);
+    document.getElementById('cadAlunoResumo').innerHTML = `
+      <div class="fs-chip">Alunos na lista<b>${lista.length}</b></div>
+      <div class="fs-chip">Valor total das CNHs<b>${formatMoney(valorTotal)}</b></div>`;
+    if(!lista.length){
+      tbody.innerHTML = '<tr><td colspan="10" class="cell-muted">Nenhum aluno encontrado com esses filtros.</td></tr>';
+      return;
+    }
+    const vazio = '<span class="cell-muted">—</span>';
+    tbody.innerHTML = lista.map(a=>{
+      const cat = categoriaById(a.categoria);
+      const et = etapaAlunoById(a.stage_id);
+      return `<tr>
+        <td><strong>${escapeHtml(a.nome)}</strong>${ehClienteServico(a) ? ' <span class="badge badge-servico">Cliente de serviço</span>' : ''}</td>
+        <td class="num">${a.telefone ? escapeHtml(a.telefone) : vazio}</td>
+        <td><span class="badge" style="background:${cat.cor}">${cat.id}</span></td>
+        <td>${a.renach ? escapeHtml(a.renach) : vazio}</td>
+        <td class="num">${a.cpf ? escapeHtml(a.cpf) : vazio}</td>
+        <td>${a.instrutor ? escapeHtml(a.instrutor) : vazio}</td>
+        <td>${et ? `<span class="etapa-tag"><i style="background:${escapeHtml(et.cor)}"></i>${escapeHtml(et.nome)}</span>` : (ehClienteServico(a) ? '<span class="cell-muted">Fora da jornada</span>' : '<span class="etapa-tag" style="color:#b8272c;font-weight:700;">Sem etapa</span>')}</td>
+        <td class="num">${formatDateBR(a.data_matricula)}</td>
+        <td class="num">${Number(a.valor_total_cnh) > 0 ? formatMoney(a.valor_total_cnh) : vazio}</td>
+        <td class="cell-actions">
+          <button class="icon-btn" data-act="venda-cad-aluno" data-id="${escapeHtml(a.id)}" title="Venda de serviço">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1.2 1.1-2 2.5-2s2.5.8 2.5 2-1.1 1.7-2.5 2-2.5.8-2.5 2 1.1 2 2.5 2 2.5-.8 2.5-2"/></svg>
+          </button>
+          <button class="icon-btn" data-act="edit-cad-aluno" data-id="${escapeHtml(a.id)}" title="Editar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+    tbody.querySelectorAll('[data-act="edit-cad-aluno"]').forEach(btn=> btn.addEventListener('click', ()=> openAlunoModal(btn.dataset.id)));
+    tbody.querySelectorAll('[data-act="venda-cad-aluno"]').forEach(btn=> btn.addEventListener('click', ()=> abrirVendaServico(btn.dataset.id)));
+  }
+  ['cadAlunoSearch','cadAlunoCategoria','cadAlunoEtapa','cadAlunoInstrutor','cadAlunoTipo','cadAlunoOrdem'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', renderCadAlunosTable);
+    document.getElementById(id).addEventListener('change', renderCadAlunosTable);
+  });
+  document.getElementById('btnCadNovoAluno').addEventListener('click', ()=> openAlunoModal(null));
+  document.getElementById('btnCadAlunosCsv').addEventListener('click', ()=>{
+    const lista = filteredCadAlunos();
+    if(!lista.length){ showToast('Nenhum aluno na lista para exportar.'); return; }
+    baixarCsv(`alunos-stopcars-${hojeISO()}.csv`,
+      ['Nome','Telefone','Categoria','RENACH','CPF','Instrutor','Tipo de cadastro','Etapa','Data da matrícula','Valor da CNH','Observações'],
+      lista.map(a=>[a.nome, a.telefone, a.categoria, a.renach, a.cpf, a.instrutor, ehClienteServico(a) ? 'Cliente de serviço' : 'Aluno da CNH', ehClienteServico(a) ? 'Fora da jornada' : (etapaAlunoById(a.stage_id)?.nome || 'Sem etapa'), dataBR(a.data_matricula), a.valor_total_cnh ? numeroCsv(a.valor_total_cnh) : '', a.observacoes]));
+    showToast(lista.length + ' aluno(s) exportado(s).');
+  });
+
+  // =====================================================================
+  // SERVIÇOS — catálogo (Cadastros → Serviços), venda (Alunos → + Venda de serviço)
+  // e lista de serviços contratados dentro do cadastro do aluno.
+  // Venda de serviço = registro ligado ao aluno + parcelas em Contas a Receber
+  // (origem 'servico'). Tudo grava junto ou nada grava.
+  // =====================================================================
+  const gid = id => document.getElementById(id);
+  let servicos = [];
+  let servicosCarregados = false;
+  let servicosErro = null;
+
+  function msgInstalarServicos(error){
+    return 'Não foi possível carregar os serviços (' + (error && error.message ? error.message : 'erro desconhecido') + '). Se ainda não instalou, rode o arquivo servicos-vendas.sql no SQL Editor do Supabase.';
+  }
+  async function carregarServicos(forcar){
+    if(servicosCarregados && !forcar) return true;
+    const { data, error } = await sb.from('servicos').select('*').order('nome');
+    if(error){ servicosErro = error; servicosCarregados = false; servicos = []; renderServicosTable(); return false; }
+    servicosErro = null; servicos = data || []; servicosCarregados = true;
+    renderServicosTable();
+    return true;
+  }
+  function nomeServicoJaExiste(nome, ignorarId){
+    const n = nome.trim().toLowerCase();
+    return servicos.some(s => s.id !== ignorarId && String(s.nome).trim().toLowerCase() === n);
+  }
+  function renderServicosTable(){
+    const tbody = gid('tbodyServicos'), aviso = gid('servicosAviso');
+    const podeEditar = papelAtual === 'admin';
+    gid('servicosNovoBar').style.display = podeEditar ? '' : 'none';
+    if(servicosErro){
+      aviso.style.display = 'block'; aviso.textContent = msgInstalarServicos(servicosErro);
+      tbody.innerHTML = '<tr><td colspan="4" class="cell-muted">—</td></tr>';
+      return;
+    }
+    aviso.style.display = podeEditar ? 'none' : 'block';
+    if(!podeEditar) aviso.textContent = 'Somente o administrador altera o catálogo de serviços.';
+    if(!servicos.length){ tbody.innerHTML = '<tr><td colspan="4" class="cell-muted">Nenhum serviço cadastrado.</td></tr>'; return; }
+    tbody.innerHTML = servicos.map(s => `<tr class="servico-linha" data-id="${escapeHtml(s.id)}">
+      <td><input type="text" data-field="nome" value="${escapeHtml(s.nome)}" ${podeEditar ? '' : 'disabled'}></td>
+      <td style="max-width:150px;"><input type="number" min="0" step="0.01" data-field="valor_padrao" value="${s.valor_padrao ?? ''}" placeholder="—" ${podeEditar ? '' : 'disabled'}></td>
+      <td><label class="checkbox-row"><input type="checkbox" data-field="ativo" ${s.ativo ? 'checked' : ''} ${podeEditar ? '' : 'disabled'}> ${s.ativo ? 'Ativo' : 'Inativo'}</label></td>
+      <td class="cell-actions">${podeEditar ? '<button class="icon-btn" data-act="del-servico" title="Excluir serviço">🗑</button>' : ''}</td>
+    </tr>`).join('');
+    tbody.querySelectorAll('tr.servico-linha').forEach(tr => {
+      const id = tr.dataset.id;
+      tr.querySelectorAll('input[data-field]').forEach(input => {
+        input.addEventListener('change', () => salvarCampoServico(id, input.dataset.field, input));
+      });
+      const del = tr.querySelector('[data-act="del-servico"]');
+      if(del) del.addEventListener('click', () => excluirServico(id));
+    });
+  }
+  async function salvarCampoServico(id, campo, input){
+    const s = servicos.find(x => x.id === id); if(!s) return;
+    let valor;
+    if(campo === 'nome'){
+      valor = input.value.trim();
+      if(!valor){ showToast('O nome do serviço não pode ficar vazio.'); renderServicosTable(); return; }
+      if(nomeServicoJaExiste(valor, id)){ showToast('Já existe um serviço com esse nome.'); renderServicosTable(); return; }
+    }else if(campo === 'valor_padrao'){
+      valor = input.value === '' ? null : parseFloat(input.value);
+      if(valor !== null && (isNaN(valor) || valor < 0)){ showToast('Informe um valor válido (ou deixe vazio).'); renderServicosTable(); return; }
+    }else{
+      valor = input.checked;
+    }
+    const { error } = await sb.from('servicos').update({ [campo]: valor, atualizado_em: new Date().toISOString() }).eq('id', id);
+    if(error){ showToast('Erro ao salvar o serviço: ' + error.message); await carregarServicos(true); return; }
+    s[campo] = valor;
+    renderServicosTable();
+    showToast('Serviço atualizado.');
+  }
+  async function excluirServico(id){
+    const s = servicos.find(x => x.id === id); if(!s) return;
+    if(!confirm('Excluir o serviço "' + s.nome + '"?\n\nAs vendas já registradas continuam com o nome dele. Se só quiser parar de oferecer, desmarque "Ativo".')) return;
+    const { error } = await sb.from('servicos').delete().eq('id', id);
+    if(error){ showToast('Erro ao excluir: ' + error.message); return; }
+    showToast('Serviço excluído.');
+    await carregarServicos(true);
+  }
+  gid('btnAddServico').addEventListener('click', async () => {
+    const nome = gid('novoServicoNome').value.trim();
+    const valorTxt = gid('novoServicoValor').value;
+    if(!nome){ showToast('Informe o nome do serviço.'); return; }
+    if(nomeServicoJaExiste(nome)){ showToast('Já existe um serviço com esse nome.'); return; }
+    const valor = valorTxt === '' ? null : parseFloat(valorTxt);
+    if(valor !== null && (isNaN(valor) || valor < 0)){ showToast('Informe um valor válido (ou deixe vazio).'); return; }
+    const { error } = await sb.from('servicos').insert({ id: uid('svc'), nome, valor_padrao: valor, ativo: true, criado_em: new Date().toISOString() });
+    if(error){ showToast('Erro ao adicionar: ' + error.message); return; }
+    gid('novoServicoNome').value = ''; gid('novoServicoValor').value = '';
+    showToast('Serviço adicionado.');
+    await carregarServicos(true);
+  });
+
+  // ---------- Venda de serviço ----------
+  let vsParcelasLista = [];
+  let vsParcelasEditadas = false;     // true quando alguém editou uma parcela na mão (aí não regeramos sozinho)
+  let salvandoVendaServico = false;
+  const FORMAS_VS = ['Pix','Dinheiro','Cartão de Crédito','Cartão de Débito','Boleto','Transferência'];
+  const MAX_PARCELAS = 48;   // um erro de digitação (ex.: 2150) não pode gerar milhares de linhas
+
+  function vsModo(){ return document.querySelector('input[name="vsModo"]:checked').value; }
+  function vsAplicarModo(){
+    const novo = vsModo() === 'novo';
+    gid('vsBlocoExistente').style.display = novo ? 'none' : '';
+    gid('vsBlocoNovo').style.display = novo ? '' : 'none';
+  }
+  function vsFiltrarAlunos(selecionarId){
+    const q = gid('vsBusca').value.trim().toLowerCase();
+    const qDig = soDigitos(q);
+    const lista = alunos.filter(a => {
+      if(!q) return true;
+      const texto = `${a.nome||''} ${a.telefone||''} ${a.renach||''} ${a.cpf||''}`.toLowerCase();
+      return texto.includes(q) || (qDig.length >= 3 && soDigitos(`${a.telefone||''}${a.renach||''}${a.cpf||''}`).includes(qDig));
+    }).sort((x, y) => String(x.nome||'').localeCompare(String(y.nome||''), 'pt-BR'));
+    const atual = selecionarId || gid('vsAluno').value;
+    gid('vsAluno').innerHTML = lista.length
+      ? lista.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.nome)} — ${escapeHtml(a.telefone || 'sem telefone')}${ehClienteServico(a) ? ' · cliente de serviço' : ''}</option>`).join('')
+      : '<option value="" disabled>Nenhum aluno encontrado</option>';
+    if(atual) gid('vsAluno').value = atual;
+  }
+  function vsServicoSelecionado(){ return servicos.find(s => s.id === gid('vsServico').value) || null; }
+  function vsRecalcularTotal(){
+    const qtd = Math.max(1, parseInt(gid('vsQtd').value) || 1);
+    const unit = parseFloat(gid('vsValorUnit').value);
+    if(!isNaN(unit)) gid('vsValorTotal').value = Math.round(qtd * unit * 100) / 100;
+    vsParcelasAuto();
+  }
+  function vsParcelasAuto(){
+    if(vsParcelasEditadas) vsAtualizarChecagem(); else vsGerarParcelas();
+  }
+  function vsGerarParcelas(){
+    const total = parseFloat(gid('vsValorTotal').value) || 0;
+    let n = Math.max(1, parseInt(gid('vsParcelas').value) || 1);
+    if(n > MAX_PARCELAS){ n = MAX_PARCELAS; gid('vsParcelas').value = MAX_PARCELAS; showToast('O máximo é de ' + MAX_PARCELAS + ' parcelas.'); }
+    const primeiro = gid('vsPrimeiroVencimento').value || hojeISO();
+    const forma = gid('vsForma').value;
+    const valorParcela = Math.round((total / n) * 100) / 100;
+    vsParcelasLista = [];
+    for(let p = 1; p <= n; p++){
+      let valor = valorParcela;
+      if(p === n) valor = Math.round((total - valorParcela * (n - 1)) * 100) / 100;
+      vsParcelasLista.push({ valor, vencimento: addMonthsToDate(primeiro, p - 1), forma });
+    }
+    vsParcelasEditadas = false;
+    vsRenderParcelas();
+  }
+  function vsRenderParcelas(){
+    const n = vsParcelasLista.length;
+    gid('vsParcelasBody').innerHTML = vsParcelasLista.map((p, i) => `
+      <tr>
+        <td>${i + 1}/${n}</td>
+        <td><input type="number" min="0" step="0.01" data-idx="${i}" data-field="valor" value="${p.valor}"></td>
+        <td><input type="date" data-idx="${i}" data-field="vencimento" value="${p.vencimento}"></td>
+        <td><select data-idx="${i}" data-field="forma">${FORMAS_VS.map(f => `<option value="${f}" ${f === p.forma ? 'selected' : ''}>${f}</option>`).join('')}</select></td>
+      </tr>`).join('');
+    gid('vsParcelasBody').querySelectorAll('input,select').forEach(el => {
+      const atualizar = e => {
+        const idx = Number(e.target.dataset.idx), campo = e.target.dataset.field;
+        if(!vsParcelasLista[idx]) return;
+        vsParcelasLista[idx][campo] = campo === 'valor' ? (parseFloat(e.target.value) || 0) : e.target.value;
+        vsParcelasEditadas = true;
+        vsAtualizarChecagem();
+      };
+      el.addEventListener('change', atualizar);
+      if(el.tagName === 'INPUT') el.addEventListener('input', atualizar);
+    });
+    vsAtualizarChecagem();
+  }
+  function vsAtualizarChecagem(){
+    const total = parseFloat(gid('vsValorTotal').value) || 0;
+    const soma = vsParcelasLista.reduce((s, p) => s + (Number(p.valor) || 0), 0);
+    const diff = Math.round((total - soma) * 100) / 100;
+    const el = gid('vsParcelasCheck');
+    if(Math.abs(diff) < 0.01){
+      el.className = 'parcelas-check ok';
+      el.textContent = 'Soma das parcelas: ' + formatMoney(soma) + ' — confere com o valor total.';
+    }else{
+      el.className = 'parcelas-check warn';
+      el.textContent = 'Soma das parcelas: ' + formatMoney(soma) + ' — diferença de ' + formatMoney(Math.abs(diff)) + ' em relação ao valor total (' + formatMoney(total) + '). Ajuste as parcelas ou use "Gerar/Redistribuir".';
+    }
+  }
+
+  async function abrirVendaServico(alunoIdPre){
+    if(!(await carregarServicos(true))){
+      showToast('Os serviços ainda não estão disponíveis — rode o servicos-vendas.sql (veja Cadastros → Serviços).');
+      return;
+    }
+    const ativos = servicos.filter(s => s.ativo);
+    if(!ativos.length){ showToast('Cadastre ao menos um serviço ativo em Cadastros → Serviços.'); return; }
+    await carregarAlunosModulo(true);   // lista de alunos sempre atualizada
+
+    document.querySelector('input[name="vsModo"][value="existente"]').checked = true;
+    vsAplicarModo();
+    gid('vsBusca').value = '';
+    vsFiltrarAlunos(alunoIdPre || '');
+    gid('errVsAluno').classList.remove('show');
+    ['vsNovoNome','vsNovoTelefone','vsNovoCpf','vsObs'].forEach(id => { gid(id).value = ''; });
+    ['errVsNovoNome','errVsNovoTelefone','errVsServico','errVsValorTotal'].forEach(id => gid(id).classList.remove('show'));
+    gid('vsNovoCategoria').innerHTML = CATEGORIAS.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+    gid('vsServico').innerHTML = ativos.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.nome)}</option>`).join('');
+    gid('vsQtd').value = 1;
+    gid('vsValorUnit').value = ativos[0].valor_padrao ?? '';
+    gid('vsValorTotal').value = ativos[0].valor_padrao ?? '';
+    gid('vsParcelas').value = 1;
+    gid('vsPrimeiroVencimento').value = hojeISO();
+    gid('vsForma').value = 'Pix';
+    vsParcelasEditadas = false;
+    vsRecalcularTotal();
+    gid('vendaServicoModalOverlay').classList.add('open');
+  }
+
+  document.querySelectorAll('input[name="vsModo"]').forEach(r => r.addEventListener('change', vsAplicarModo));
+  gid('vsBusca').addEventListener('input', () => vsFiltrarAlunos());
+  gid('vsServico').addEventListener('change', () => {
+    const s = vsServicoSelecionado();
+    gid('vsValorUnit').value = s && s.valor_padrao !== null && s.valor_padrao !== undefined ? s.valor_padrao : '';
+    vsRecalcularTotal();
+  });
+  gid('vsQtd').addEventListener('input', vsRecalcularTotal);
+  gid('vsValorUnit').addEventListener('input', vsRecalcularTotal);
+  gid('vsValorTotal').addEventListener('input', vsParcelasAuto);
+  // Data e forma regeneram quando mudam. O nº de parcelas regenera ao DIGITAR (input); NÃO usar "change" nele:
+  // o change dispara quando a pessoa clica numa parcela, refazendo a tabela no meio do clique e perdendo o foco.
+  ['vsPrimeiroVencimento','vsForma'].forEach(id => gid(id).addEventListener('change', () => { vsParcelasEditadas = false; vsGerarParcelas(); }));
+  gid('vsParcelas').addEventListener('input', () => { vsParcelasEditadas = false; vsGerarParcelas(); });
+  gid('btnVsGerarParcelas').addEventListener('click', vsGerarParcelas);
+  gid('btnCancelVendaServico').addEventListener('click', () => gid('vendaServicoModalOverlay').classList.remove('open'));
+  gid('btnVendaServico').addEventListener('click', () => abrirVendaServico());
+  gid('btnAfNovaVenda').addEventListener('click', () => { if(editingAlunoId) abrirVendaServico(editingAlunoId); });
+
+  // Desfaz o que a venda já gravou (venda primeiro, depois a pessoa cadastrada na hora), para nunca sobrar registro pela metade.
+  async function desfazerVendaServico(vendaId, alunoCriadoId){
+    let ok = true;
+    if(vendaId){ const { error } = await sb.from('vendas_servico').delete().eq('id', vendaId); if(error) ok = false; }
+    if(alunoCriadoId){ const { error } = await sb.from('alunos').delete().eq('id', alunoCriadoId); if(error) ok = false; }
+    return ok;
+  }
+
+  gid('vendaServicoForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(salvandoVendaServico) return;
+
+    // ---- validações ----
+    const modo = vsModo();
+    let alunoId = null, novo = null;
+    if(modo === 'existente'){
+      alunoId = gid('vsAluno').value;
+      if(!alunoId){ gid('errVsAluno').classList.add('show'); showToast('Selecione o aluno.'); return; }
+      gid('errVsAluno').classList.remove('show');
+    }else{
+      const nome = gid('vsNovoNome').value.trim(), telefone = gid('vsNovoTelefone').value.trim();
+      gid('errVsNovoNome').classList.toggle('show', !nome);
+      gid('errVsNovoTelefone').classList.toggle('show', !telefone);
+      if(!nome || !telefone){ showToast('Informe o nome e o telefone da pessoa.'); return; }
+      novo = { nome, telefone, categoria: gid('vsNovoCategoria').value, cpf: gid('vsNovoCpf').value.trim() || null };
+    }
+    const servico = vsServicoSelecionado();
+    if(!servico){ gid('errVsServico').classList.add('show'); showToast('Selecione o serviço.'); return; }
+    gid('errVsServico').classList.remove('show');
+    const qtd = parseInt(gid('vsQtd').value);
+    if(!qtd || qtd < 1){ showToast('A quantidade precisa ser de pelo menos 1.'); return; }
+    const valorTotal = parseFloat(gid('vsValorTotal').value);
+    if(!valorTotal || valorTotal <= 0){ gid('errVsValorTotal').classList.add('show'); showToast('Informe o valor total da venda.'); return; }
+    gid('errVsValorTotal').classList.remove('show');
+    if(!vsParcelasLista.length){ showToast('Gere as parcelas antes de registrar.'); return; }
+    if(vsParcelasLista.some(p => !p.valor || p.valor <= 0 || !p.vencimento)){ showToast('Cada parcela precisa de valor e vencimento preenchidos.'); return; }
+    const soma = Math.round(vsParcelasLista.reduce((s, p) => s + p.valor, 0) * 100) / 100;
+    if(Math.abs(soma - valorTotal) >= 0.01){
+      if(!confirm('A soma das parcelas (' + formatMoney(soma) + ') é diferente do valor total (' + formatMoney(valorTotal) + ').\n\nRegistrar mesmo assim?')) return;
+    }
+
+    salvandoVendaServico = true;
+    const btn = document.querySelector('#vendaServicoForm button[type="submit"]');
+    if(btn) btn.disabled = true;
+    try{
+      const now = new Date().toISOString();
+      let alunoCriadoId = null, alunoNome, renach = null;
+
+      if(novo){
+        alunoCriadoId = uid('aluno');
+        const { error: erroAluno } = await sb.from('alunos').insert({
+          id: alunoCriadoId, nome: novo.nome, telefone: novo.telefone, categoria: novo.categoria, cpf: novo.cpf,
+          renach: null, instrutor: null, valor_total_cnh: null, data_matricula: null, stage_id: null,
+          tipo_cadastro: 'servico', observacoes: null, origem_lead_id: null,
+          criado_em: now, etapa_desde: now, atualizado_em: now,
+        });
+        if(erroAluno){ showToast('Erro ao cadastrar a pessoa: ' + erroAluno.message); return; }
+        alunoId = alunoCriadoId; alunoNome = novo.nome;
+      }else{
+        const a = alunoById(alunoId);
+        alunoNome = a ? a.nome : ''; renach = a ? (a.renach || null) : null;
+      }
+
+      const vendaId = uid('vs');
+      const { error: erroVenda } = await sb.from('vendas_servico').insert({
+        id: vendaId, aluno_id: alunoId, servico_id: servico.id, servico_nome: servico.nome,
+        quantidade: qtd, valor_total: valorTotal, data_venda: hojeISO(), status: 'ativa',
+        observacoes: gid('vsObs').value.trim() || null, criado_em: now, atualizado_em: now,
+      });
+      if(erroVenda){
+        const limpo = await desfazerVendaServico(null, alunoCriadoId);
+        showToast(limpo ? 'Venda NÃO registrada — ' + erroVenda.message + '. Nada foi criado; você pode tentar de novo.'
+                        : 'ATENÇÃO: a venda falhou (' + erroVenda.message + ') e o cadastro de "' + alunoNome + '" não pôde ser desfeito. Confira em Cadastros → Alunos.');
+        return;
+      }
+
+      const n = vsParcelasLista.length;
+      const rotulo = servico.nome + (qtd > 1 ? ' (' + qtd + 'x)' : '');
+      const linhas = vsParcelasLista.map((p, i) => ({
+        id: uid('cr'), aluno_id: alunoId, aluno_nome: alunoNome, renach,
+        descricao: n > 1 ? `${rotulo} — parcela ${i + 1}/${n}` : rotulo,
+        valor: p.valor, forma_pagamento: p.forma, parcela_atual: i + 1, parcela_total: n,
+        data_vencimento: p.vencimento, status: 'pendente', origem: 'servico', venda_servico_id: vendaId,
+        criado_em: now, atualizado_em: now,
+      }));
+      const { error: erroParcelas } = await sb.from('contas_receber').insert(linhas);
+      if(erroParcelas){
+        const limpo = await desfazerVendaServico(vendaId, alunoCriadoId);
+        showToast(limpo ? 'Venda NÃO registrada — erro ao gerar as parcelas (' + erroParcelas.message + '). Nada foi criado; você pode tentar de novo.'
+                        : 'ATENÇÃO: as parcelas falharam (' + erroParcelas.message + ') e a venda de "' + alunoNome + '" não pôde ser desfeita. Confira Cadastros → Alunos.');
+        return;
+      }
+
+      gid('vendaServicoModalOverlay').classList.remove('open');
+      showToast('Venda registrada: ' + rotulo + ' para ' + alunoNome + ' (' + n + ' parcela' + (n > 1 ? 's' : '') + ' em Contas a Receber).');
+      invalidarFinanceiro();
+      await carregarAlunosModulo(true);
+      if(editingAlunoId === alunoId && gid('alunoModalOverlay').classList.contains('open')) await renderServicosDoAluno(alunoId);
+    } finally {
+      salvandoVendaServico = false;
+      if(btn) btn.disabled = false;
+    }
+  });
+
+  // ---------- Serviços contratados (dentro do cadastro do aluno) ----------
+  function situacaoParcelas(ps, hoje){
+    if(!ps.length) return { rotulo: 'Sem parcelas', pill: 'inativo', recebidas: 0, total: 0 };
+    const abertas = ps.filter(p => p.status !== 'recebido');
+    const atrasada = abertas.some(p => p.data_vencimento && String(p.data_vencimento).slice(0,10) < hoje);
+    const base = { recebidas: ps.length - abertas.length, total: ps.length };
+    if(!abertas.length) return { ...base, rotulo: 'Quitada', pill: 'recebido' };
+    return atrasada ? { ...base, rotulo: 'Em atraso', pill: 'atrasado' } : { ...base, rotulo: 'Em dia', pill: 'pendente' };
+  }
+  async function renderServicosDoAluno(alunoId){
+    const box = gid('afServicosBox'), lista = gid('afServicosLista');
+    box.style.display = alunoId ? '' : 'none';
+    if(!alunoId) return;
+    lista.innerHTML = 'Carregando…';
+    const { data: vendas, error } = await sb.from('vendas_servico').select('*').eq('aluno_id', alunoId).order('data_venda', { ascending: false });
+    if(editingAlunoId !== alunoId) return;   // trocou de aluno enquanto carregava
+    if(error){ lista.innerHTML = 'Serviços indisponíveis agora (' + escapeHtml(error.message) + ').'; return; }
+    if(!vendas || !vendas.length){ lista.innerHTML = 'Nenhum serviço contratado por este aluno.'; return; }
+    const { data: parcelas, error: erroParc } = await sb.from('contas_receber').select('id, venda_servico_id, valor, status, data_vencimento').in('venda_servico_id', vendas.map(v => v.id));
+    if(editingAlunoId !== alunoId) return;
+    if(erroParc){ lista.innerHTML = 'Não foi possível ler as parcelas (' + escapeHtml(erroParc.message) + ').'; return; }
+    const hoje = hojeISO();
+    lista.innerHTML = vendas.map(v => {
+      const ps = (parcelas || []).filter(p => p.venda_servico_id === v.id);
+      const cancelada = v.status === 'cancelada';
+      const sit = cancelada ? { rotulo: 'Cancelada', pill: 'inativo', recebidas: 0, total: 0 } : situacaoParcelas(ps, hoje);
+      return `<div class="vs-venda ${cancelada ? 'cancelada' : ''}">
+        <div><b>${escapeHtml(v.servico_nome)}</b>${v.quantidade > 1 ? ' ×' + v.quantidade : ''} · ${formatDateBR(v.data_venda)} · ${formatMoney(v.valor_total)}
+          <div class="cell-muted" style="text-decoration:none;">${cancelada ? 'Venda cancelada' : (sit.total ? sit.recebidas + '/' + sit.total + ' parcelas recebidas' : 'sem parcelas lançadas')}</div></div>
+        <div style="display:flex;gap:8px;align-items:center;white-space:nowrap;">
+          <span class="status-pill ${sit.pill}">${sit.rotulo}</span>
+          ${(!cancelada && papelAtual === 'admin') ? `<button type="button" class="btn btn-ghost" style="padding:3px 9px;font-size:11.5px;color:var(--red);" data-act="cancelar-venda" data-id="${escapeHtml(v.id)}">Cancelar venda</button>` : ''}
+        </div></div>`;
+    }).join('');
+    lista.querySelectorAll('[data-act="cancelar-venda"]').forEach(b => b.addEventListener('click', () => cancelarVendaServico(b.dataset.id, alunoId)));
+  }
+  async function cancelarVendaServico(vendaId, alunoId){
+    if(papelAtual !== 'admin'){ showToast('Somente o administrador cancela vendas.'); return; }
+    if(!confirm('Cancelar esta venda?\n\nAs parcelas PENDENTES serão excluídas. As parcelas já RECEBIDAS continuam no Financeiro.')) return;
+    // 1º marca a venda como cancelada (ela deixa de contar nos relatórios); 2º remove só as parcelas pendentes.
+    const { error } = await sb.from('vendas_servico').update({ status: 'cancelada', atualizado_em: new Date().toISOString() }).eq('id', vendaId);
+    if(error){ showToast('Erro ao cancelar a venda: ' + error.message); return; }
+    const { error: erroParc } = await sb.from('contas_receber').delete().eq('venda_servico_id', vendaId).eq('status', 'pendente');
+    invalidarFinanceiro();
+    await renderServicosDoAluno(alunoId);
+    showToast(erroParc ? 'Venda cancelada, mas as parcelas pendentes NÃO foram removidas (' + erroParc.message + ') — exclua-as em Financeiro.'
+                       : 'Venda cancelada. Parcelas já recebidas foram mantidas no Financeiro.');
+  }
+
+  // =====================================================================
   // MÓDULO FROTA — Veículos + Manutenções
   // =====================================================================
   let veiculos = [], manutencoes = [];
@@ -2409,7 +3269,7 @@
       const texto = `${m.veiculo_placa||''} ${v?.modelo||''} ${m.descricao||''}`.toLowerCase();
       return !q || texto.includes(q);
     });
-    updateHiddenCountNote('manutencaoHiddenNote', manutencoes.length, list.length);
+    updateHiddenCountNote('manutencaoHiddenNote', manutencoes.length, manutencoes.length - manutencoes.filter(m=> !isInPeriod(m.data, de, ate)).length);
     list = [...list].sort((a,b)=> (b.data||'').localeCompare(a.data||''));
     const tbody = document.getElementById('tbodyManutencoes');
     if(!list.length){
@@ -2457,8 +3317,22 @@
   document.getElementById('btnCancelManutencaoModal').addEventListener('click', ()=>{
     document.getElementById('manutencaoModalOverlay').classList.remove('open');
   });
+  // Despesas geradas pela Frota alteram o Financeiro: força recarregar essas telas na próxima visita.
+  function invalidarFinanceiro(){ financeiroCarregado = false; dashboardCarregado = false; }
+
+  // Busca no BANCO a situação atual da despesa vinculada (o Financeiro pode ter
+  // marcado como paga ou excluído depois de a manutenção ter sido criada).
+  async function buscarDespesaVinculada(contaPagarId){
+    if(!contaPagarId) return { despesa: null };
+    const { data, error } = await sb.from('contas_pagar').select('id, status').eq('id', contaPagarId).maybeSingle();
+    if(error) return { erro: error };
+    return { despesa: data || null };
+  }
+
+  let salvandoManutencao = false;
   document.getElementById('manutencaoForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
+    if(salvandoManutencao) return;
     const veiculoId = document.getElementById('mnVeiculo').value;
     const descricao = document.getElementById('mnDescricao').value.trim();
     let valido = true;
@@ -2472,61 +3346,129 @@
     const dataManut = document.getElementById('mnData').value || hojeISO();
     const custo = Number(document.getElementById('mnCusto').value || 0);
     const gerarDespesa = document.getElementById('mnGeraDespesa').checked;
-    const existente = editingManutencaoId ? manutencaoById(editingManutencaoId) : null;
-    let contaPagarId = existente?.conta_pagar_id || null;
+    if(gerarDespesa && !(custo > 0)){
+      showToast('Informe o custo para lançar a despesa — ou desmarque "Lançar em Contas a Pagar".');
+      return;
+    }
 
-    // Mantém a despesa em Contas a Pagar sincronizada com a manutenção,
-    // mesmo o módulo Financeiro ainda não tendo tela própria — a tabela
-    // já existe no Supabase e é para lá que o Financeiro vai olhar depois.
-    if(gerarDespesa){
-      const dadosDespesa = {
-        id: contaPagarId || uid('cp'),
+    salvandoManutencao = true;
+    const btnSalvar = document.querySelector('#manutencaoForm button[type="submit"]');
+    if(btnSalvar) btnSalvar.disabled = true;
+    try{
+      const existente = editingManutencaoId ? manutencaoById(editingManutencaoId) : null;
+      const now = new Date().toISOString();
+
+      // 1) Situação ATUAL da despesa vinculada (se houver), direto do banco.
+      const consulta = await buscarDespesaVinculada(existente?.conta_pagar_id);
+      if(consulta.erro){ showToast('Erro ao verificar a despesa vinculada: ' + consulta.erro.message); return; }
+      const despesaAtual = consulta.despesa;
+      const despesaPaga = !!despesaAtual && despesaAtual.status === 'pago';
+
+      // 2) Decide o que fazer com a despesa. Despesa PAGA é histórico financeiro:
+      //    nunca é reaberta, alterada nem apagada por aqui.
+      const camposDespesa = {
         fornecedor_nome: v ? `Manutenção — ${v.placa}` : 'Manutenção',
         descricao: `Manutenção: ${descricao}`,
-        categoria: 'Manutenção de veículo',
         valor: custo,
-        tipo: 'variavel',
         data_vencimento: dataManut,
-        status: 'pendente',
-        observacoes: 'Gerado automaticamente pelo módulo Frota.',
-        atualizado_em: new Date().toISOString(),
+        atualizado_em: now,
       };
-      const { error: erroDespesa } = await sb.from('contas_pagar').upsert(dadosDespesa);
-      if(erroDespesa){ showToast('Erro ao lançar despesa: ' + erroDespesa.message); return; }
-      contaPagarId = dadosDespesa.id;
-    } else if(contaPagarId){
-      // Deixou de gerar despesa: remove o lançamento que existia antes.
-      await sb.from('contas_pagar').delete().eq('id', contaPagarId);
-      contaPagarId = null;
-    }
+      let contaPagarId = existente?.conta_pagar_id || null;
+      let acaoDespesa = 'nada';      // 'criar' | 'atualizar' | 'excluir' | 'nada'
+      let aviso = '';
+      if(gerarDespesa){
+        if(!despesaAtual){
+          acaoDespesa = 'criar';
+          contaPagarId = uid('cp');
+          if(existente?.conta_pagar_id) aviso = ' A despesa vinculada não existia mais e foi lançada de novo.';
+        }else if(despesaPaga){
+          const mudou = existente && (Number(existente.custo) !== custo || existente.data !== dataManut);
+          if(mudou) aviso = ' A despesa vinculada já está paga e não foi alterada — ajuste em Financeiro se precisar.';
+        }else{
+          acaoDespesa = 'atualizar';
+        }
+      }else if(despesaAtual){
+        if(despesaPaga){
+          contaPagarId = null;
+          aviso = ' A despesa já paga foi mantida em Financeiro.';
+        }else{
+          acaoDespesa = 'excluir';
+          contaPagarId = null;
+        }
+      }else{
+        contaPagarId = null;
+      }
 
-    const registro = {
-      id: editingManutencaoId || uid('manut'),
-      veiculo_id: veiculoId,
-      veiculo_placa: v?.placa || '',
-      data: dataManut,
-      descricao,
-      custo,
-      gera_despesa: gerarDespesa,
-      conta_pagar_id: contaPagarId,
-    };
-    const { error } = await sb.from('manutencoes').upsert(registro);
-    if(error){ showToast('Erro ao salvar: ' + error.message); return; }
-    document.getElementById('manutencaoModalOverlay').classList.remove('open');
-    showToast('Manutenção salva com sucesso.');
-    await carregarFrota(true);
+      // 3) Se for criar, a despesa vem primeiro (a manutenção aponta para ela).
+      if(acaoDespesa === 'criar'){
+        const { error: erroCriar } = await sb.from('contas_pagar').insert({
+          id: contaPagarId, ...camposDespesa,
+          categoria: 'Manutenção de veículo', tipo: 'variavel', status: 'pendente',
+          observacoes: 'Gerado automaticamente pelo módulo Frota.', criado_em: now,
+        });
+        if(erroCriar){ showToast('Erro ao lançar despesa: ' + erroCriar.message); return; }
+      }
+
+      // 4) Grava a manutenção. Se falhar, desfaz a despesa criada agora (sem sobras).
+      const registro = {
+        id: editingManutencaoId || uid('manut'),
+        veiculo_id: veiculoId,
+        veiculo_placa: v?.placa || '',
+        data: dataManut,
+        descricao,
+        custo,
+        gera_despesa: gerarDespesa,
+        conta_pagar_id: contaPagarId,
+      };
+      if(!existente) registro.criado_em = now;
+      const { error } = await sb.from('manutencoes').upsert(registro);
+      if(error){
+        if(acaoDespesa === 'criar') await sb.from('contas_pagar').delete().eq('id', contaPagarId);
+        showToast('Erro ao salvar: ' + error.message);
+        return;
+      }
+
+      // 5) Com a manutenção já gravada, atualiza ou remove a despesa PENDENTE.
+      if(acaoDespesa === 'atualizar'){
+        const { error: erroAtualizar } = await sb.from('contas_pagar').update(camposDespesa).eq('id', despesaAtual.id);
+        if(erroAtualizar) aviso = ' Atenção: a despesa em Financeiro NÃO foi atualizada (' + erroAtualizar.message + ').';
+      }else if(acaoDespesa === 'excluir'){
+        const { error: erroExcluir } = await sb.from('contas_pagar').delete().eq('id', despesaAtual.id);
+        if(erroExcluir) aviso = ' Atenção: a despesa pendente em Financeiro NÃO foi removida (' + erroExcluir.message + ').';
+      }
+      if(acaoDespesa !== 'nada') invalidarFinanceiro();
+
+      document.getElementById('manutencaoModalOverlay').classList.remove('open');
+      showToast('Manutenção salva com sucesso.' + aviso);
+      await carregarFrota(true);
+    } finally {
+      salvandoManutencao = false;
+      if(btnSalvar) btnSalvar.disabled = false;
+    }
   });
+
   document.getElementById('btnDeleteManutencao').addEventListener('click', async ()=>{
     if(!editingManutencaoId) return;
-    if(!confirm('Excluir esta manutenção? Isso não pode ser desfeito.')) return;
+    if(!confirm('Excluir esta manutenção?\n\nSe houver uma despesa PENDENTE vinculada em Contas a Pagar, ela também será excluída. Despesas já pagas são mantidas no Financeiro.')) return;
     const m = manutencaoById(editingManutencaoId);
-    if(m?.conta_pagar_id){
-      await sb.from('contas_pagar').delete().eq('id', m.conta_pagar_id);
-    }
+    const consulta = await buscarDespesaVinculada(m?.conta_pagar_id);
+    if(consulta.erro){ showToast('Erro ao verificar a despesa vinculada: ' + consulta.erro.message); return; }
+    const despesa = consulta.despesa;
+
+    // Exclui a manutenção primeiro: se falhar, nada mais foi mexido.
     const { error } = await sb.from('manutencoes').delete().eq('id', editingManutencaoId);
     if(error){ showToast('Erro ao excluir: ' + error.message); return; }
+
+    let aviso = '';
+    if(despesa && despesa.status !== 'pago'){
+      const { error: erroDespesa } = await sb.from('contas_pagar').delete().eq('id', despesa.id);
+      if(erroDespesa) aviso = ' Atenção: a despesa pendente em Financeiro NÃO foi removida (' + erroDespesa.message + ') — exclua-a em Financeiro.';
+      invalidarFinanceiro();
+    }else if(despesa){
+      aviso = ' A despesa já paga foi mantida em Financeiro.';
+    }
     document.getElementById('manutencaoModalOverlay').classList.remove('open');
-    showToast('Manutenção excluída.');
+    showToast('Manutenção excluída.' + aviso);
     await carregarFrota(true);
   });
 
@@ -2555,7 +3497,7 @@
     const [rLeads, rStages, rAlunos] = await Promise.all([
       sb.from('leads').select('*'),
       sb.from('stages').select('*').order('ordem'),
-      sb.from('alunos').select('*'),
+      selecionarTudo('alunos'),
     ]);
     if(rLeads.error || rStages.error){
       showToast('Erro ao carregar o Funil — veja o console (F12).');
@@ -2595,21 +3537,25 @@
     };
   }
 
-  function filteredLeads(){
-    const f = getFiltrosFunil();
+  // Lead em etapa "ganho"/"perdido" (encerrado) respeita o período e é medido
+  // pela data em que ENTROU nessa etapa (etapa_desde = data da matrícula ou da
+  // perda), não pela data de criação do lead. Leads em etapas ativas ficam
+  // sempre visíveis — ainda precisam de ação.
+  function leadForaDoPeriodo(l){
+    const stage = stageById(l.stage_id);
+    const encerrado = stage && (stage.tipo === 'ganho' || stage.tipo === 'perdido');
+    if(!encerrado) return false;
     const de = document.getElementById('funilPeriodoDe').value;
     const ate = document.getElementById('funilPeriodoAte').value;
+    return !isInPeriod(l.etapa_desde || l.criado_em, de, ate);
+  }
+  function filteredLeads(){
+    const f = getFiltrosFunil();
     return leads.filter(l=>{
       if(f.origem !== 'todos' && l.origem !== f.origem) return false;
       if(f.categoria !== 'todos' && l.categoria !== f.categoria) return false;
       if(f.q && !(`${l.nome} ${l.telefone||''}`.toLowerCase().includes(f.q))) return false;
-      // Leads em etapa "ganho"/"perdido" (encerrados) respeitam o período;
-      // leads em etapas ativas ficam sempre visíveis, independente de quando
-      // foram criados — ainda precisam de ação.
-      const stage = stageById(l.stage_id);
-      const encerrado = stage && (stage.tipo === 'ganho' || stage.tipo === 'perdido');
-      if(encerrado && !isInPeriod(l.criado_em, de, ate)) return false;
-      return true;
+      return !leadForaDoPeriodo(l);
     });
   }
 
@@ -2619,14 +3565,16 @@
     renderListaOrigens();
     renderBoard();
   }
-  document.getElementById('searchInput').addEventListener('input', renderBoard);
-  document.getElementById('filterOrigem').addEventListener('change', renderBoard);
-  document.getElementById('filterCategoria').addEventListener('change', renderBoard);
+  // Cards, distribuição, origens e quadro usam a MESMA lista filtrada.
+  document.getElementById('searchInput').addEventListener('input', refreshFunil);
+  document.getElementById('filterOrigem').addEventListener('change', refreshFunil);
+  document.getElementById('filterCategoria').addEventListener('change', refreshFunil);
 
   function renderStatsFunil(){
-    const total = leads.length;
-    const ganhos = leads.filter(l=> stageById(l.stage_id)?.tipo === 'ganho').length;
-    const perdidos = leads.filter(l=> stageById(l.stage_id)?.tipo === 'perdido').length;
+    const base = filteredLeads();
+    const total = base.length;
+    const ganhos = base.filter(l=> stageById(l.stage_id)?.tipo === 'ganho').length;
+    const perdidos = base.filter(l=> stageById(l.stage_id)?.tipo === 'perdido').length;
     const ativos = total - ganhos - perdidos;
     const encerrados = ganhos + perdidos;
     const taxa = encerrados > 0 ? Math.round((ganhos/encerrados)*100) : null;
@@ -2641,7 +3589,8 @@
 
   function renderFunnelViz(){
     const ordered = sortedStages().filter(s=>s.tipo!=='perdido');
-    const counts = ordered.map(s=>leads.filter(l=>l.stage_id===s.id).length);
+    const base = filteredLeads();
+    const counts = ordered.map(s=>base.filter(l=>l.stage_id===s.id).length);
     const max = Math.max(1, ...counts);
     document.getElementById('funnelViz').innerHTML = ordered.map((s,i)=>{
       const c = counts[i];
@@ -2655,10 +3604,10 @@
   }
 
   function renderListaOrigens(){
-    const total = leads.length;
-    if(!total){ document.getElementById('listaOrigens').innerHTML = 'Sem dados ainda.'; return; }
+    const base = filteredLeads();
+    if(!base.length){ document.getElementById('listaOrigens').innerHTML = 'Sem dados no período.'; return; }
     document.getElementById('listaOrigens').innerHTML = ORIGENS.map(o=>{
-      const c = leads.filter(l=>l.origem===o.id).length;
+      const c = base.filter(l=>l.origem===o.id).length;
       return `<div style="display:flex;justify-content:space-between;padding:4px 0;">
         <span>${o.nome}</span><strong>${c}</strong>
       </div>`;
@@ -2699,7 +3648,7 @@
 
   function renderBoard(){
     const list = filteredLeads();
-    updateHiddenCountNote('funilHiddenNote', leads.length, list.length);
+    updateHiddenCountNote('funilHiddenNote', leads.length, leads.length - leads.filter(leadForaDoPeriodo).length);
     const cols = sortedStages().map(stage=>{
       const items = list.filter(l=>l.stage_id===stage.id);
       return `<div class="stage-col" style="--stage-color:${stage.cor}">
@@ -2752,11 +3701,17 @@
     const lead = leads.find(l=>l.id===id);
     if(!lead || lead.stage_id === newStageId) return;
     const now = new Date().toISOString();
+    // Grava no banco ANTES de mexer na tela. Se falhar, o lead continua na
+    // coluna de origem (antes ele "mudava de coluna" na tela sem ter gravado).
+    const { error } = await sb.from('leads').update({ stage_id: newStageId, etapa_desde: now, atualizado_em: now }).eq('id', id);
+    if(error){
+      showToast('Erro ao mover lead: ' + error.message);
+      refreshFunil();
+      return;
+    }
     lead.stage_id = newStageId;
     lead.etapa_desde = now;
     lead.atualizado_em = now;
-    const { error } = await sb.from('leads').update({ stage_id: newStageId, etapa_desde: now, atualizado_em: now }).eq('id', id);
-    if(error){ showToast('Erro ao mover lead: ' + error.message); return; }
     refreshFunil();
     const st = stageById(newStageId);
     if(st && st.tipo === 'perdido' && !lead.motivo_perda){
@@ -2884,19 +3839,12 @@
 
     document.getElementById('stageList').querySelectorAll('.stage-row').forEach(row=>{
       const id = row.dataset.id;
-      row.querySelector('[data-field="cor"]').addEventListener('change', async e=>{
-        await sb.from('stages').update({ cor: e.target.value }).eq('id', id);
-        stageById(id).cor = e.target.value;
-      });
-      row.querySelector('[data-field="nome"]').addEventListener('change', async e=>{
-        const nome = e.target.value.trim() || stageById(id).nome;
-        await sb.from('stages').update({ nome }).eq('id', id);
-        stageById(id).nome = nome;
-      });
-      row.querySelector('[data-field="tipo"]').addEventListener('change', async e=>{
-        await sb.from('stages').update({ tipo: e.target.value }).eq('id', id);
-        stageById(id).tipo = e.target.value;
-      });
+      row.querySelector('[data-field="cor"]').addEventListener('change', e=>
+        salvarCampoEtapa('stages', stageById(id), 'cor', e.target.value, renderStageList));
+      row.querySelector('[data-field="nome"]').addEventListener('change', e=>
+        salvarCampoEtapa('stages', stageById(id), 'nome', e.target.value.trim() || stageById(id).nome, renderStageList));
+      row.querySelector('[data-field="tipo"]').addEventListener('change', e=>
+        salvarCampoEtapa('stages', stageById(id), 'tipo', e.target.value, renderStageList));
       row.querySelector('[data-act="delete"]').addEventListener('click', async ()=>{
         const emUso = leads.some(l=>l.stage_id===id);
         if(emUso){ alert('Essa etapa tem leads. Mova-os para outra etapa antes de excluir.'); return; }
@@ -2917,13 +3865,7 @@
     const idx = list.findIndex(s=>s.id===id);
     const swapIdx = idx + dir;
     if(swapIdx < 0 || swapIdx >= list.length) return;
-    const a = list[idx], b = list[swapIdx];
-    const tmp = a.ordem; a.ordem = b.ordem; b.ordem = tmp;
-    await Promise.all([
-      sb.from('stages').update({ ordem: a.ordem }).eq('id', a.id),
-      sb.from('stages').update({ ordem: b.ordem }).eq('id', b.id),
-    ]);
-    renderStageList();
+    await trocarOrdemEtapas('stages', list[idx], list[swapIdx], renderStageList);
   }
 
   document.getElementById('btnAddStage').addEventListener('click', async ()=>{
@@ -2981,16 +3923,19 @@
     matriculaLeadId = null;
   });
 
+  // Soma meses mantendo o dia do vencimento; se o mês de destino for mais curto,
+  // usa o último dia dele (31/01 + 1 mês = 28/02, e não 03/03).
   function addMonthsToDate(iso, months){
     const [y,m,d] = iso.split('-').map(Number);
-    const date = new Date(y, m-1, d);
-    date.setMonth(date.getMonth() + months);
-    return date.toISOString().slice(0,10);
+    const alvo = new Date(y, m-1+months, 1);
+    const ultimoDia = new Date(alvo.getFullYear(), alvo.getMonth()+1, 0).getDate();
+    return ymdFromDate(new Date(alvo.getFullYear(), alvo.getMonth(), Math.min(d, ultimoDia)));
   }
 
   function gerarParcelas(){
     const valorTotal = parseFloat(document.getElementById('mfValorTotal').value) || 0;
-    const parcelas = Math.max(1, parseInt(document.getElementById('mfParcelas').value) || 1);
+    let parcelas = Math.max(1, parseInt(document.getElementById('mfParcelas').value) || 1);
+    if(parcelas > 48){ parcelas = 48; document.getElementById('mfParcelas').value = 48; showToast('O máximo é de 48 parcelas.'); }
     const primeiroVencimento = document.getElementById('mfPrimeiroVencimento').value || hojeISO();
     const formaPadrao = document.getElementById('mfFormaPagamento').value;
     const valorParcela = Math.round((valorTotal / parcelas) * 100) / 100;
@@ -3043,8 +3988,10 @@
     }
   }
 
+  let salvandoMatricula = false;
   document.getElementById('matriculaForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
+    if(salvandoMatricula) return;
     const valorTotal = parseFloat(document.getElementById('mfValorTotal').value);
     if(!valorTotal || valorTotal <= 0){
       document.getElementById('errMfValorTotal').classList.add('show');
@@ -3058,53 +4005,86 @@
       return;
     }
 
-    const lead = leads.find(l=>l.id===matriculaLeadId);
-    const now = new Date().toISOString();
-    const alunoId = uid('aluno');
-    const nome = document.getElementById('mfNome').value.trim() || (lead?.nome ?? '');
-    const renach = document.getElementById('mfRenach').value.trim() || null;
+    salvandoMatricula = true;
+    const btnMatricular = document.querySelector('#matriculaForm button[type="submit"]');
+    if(btnMatricular) btnMatricular.disabled = true;
+    try{
+      // O aluno nasce na PRIMEIRA etapa da jornada. (Antes não enviava etapa e o aluno
+      // ficava "sem etapa", invisível no quadro de Alunos.) A lista de etapas só é
+      // carregada no módulo Alunos, então busca aqui se ainda não estiver na memória.
+      let primeiraEtapaId = sortedEtapasAluno()[0]?.id;
+      if(!primeiraEtapaId){
+        const { data: etapas, error: erroEtapa } = await sb.from('etapas_aluno').select('id').order('ordem').limit(1);
+        if(erroEtapa){ showToast('Erro ao buscar a primeira etapa do aluno: ' + erroEtapa.message); return; }
+        primeiraEtapaId = etapas && etapas[0] && etapas[0].id;
+      }
+      if(!primeiraEtapaId){
+        showToast('Nenhuma etapa da jornada do aluno configurada. Cadastre em Alunos → Gerenciar etapas antes de matricular.');
+        return;
+      }
 
-    const { error: erroAluno } = await sb.from('alunos').insert({
-      id: alunoId,
-      nome,
-      telefone: document.getElementById('mfTelefone').value.trim() || (lead?.telefone ?? ''),
-      categoria: document.getElementById('mfCategoria').value,
-      renach,
-      cpf: document.getElementById('mfCpf').value.trim() || null,
-      instrutor: document.getElementById('mfInstrutor').value || null,
-      valor_total_cnh: valorTotal,
-      data_matricula: now.slice(0,10),
-      observacoes: document.getElementById('mfObs').value.trim() || null,
-      origem_lead_id: lead ? lead.id : null,
-      criado_em: now,
-      etapa_desde: now,
-      atualizado_em: now,
-    });
-    if(erroAluno){ showToast('Erro ao matricular: ' + erroAluno.message); return; }
+      const lead = leads.find(l=>l.id===matriculaLeadId);
+      const now = new Date().toISOString();
+      const alunoId = uid('aluno');
+      const nome = document.getElementById('mfNome').value.trim() || (lead?.nome ?? '');
+      const renach = document.getElementById('mfRenach').value.trim() || null;
 
-    const totalParcelas = matriculaParcelas.length;
-    const linhasParcelas = matriculaParcelas.map((p, i) => ({
-      id: uid('cr'),
-      aluno_id: alunoId,
-      aluno_nome: nome,
-      renach,
-      descricao: totalParcelas > 1 ? `Venda de CNH — parcela ${i+1}/${totalParcelas}` : 'Venda de CNH',
-      valor: p.valor,
-      forma_pagamento: p.forma,
-      parcela_atual: i+1,
-      parcela_total: totalParcelas,
-      data_vencimento: p.vencimento,
-      status: 'pendente',
-      origem: 'matricula',
-      criado_em: now,
-      atualizado_em: now,
-    }));
-    const { error: erroParcelas } = await sb.from('contas_receber').insert(linhasParcelas);
-    if(erroParcelas){ showToast('Aluno criado, mas houve erro ao gerar as parcelas: ' + erroParcelas.message); return; }
+      const { error: erroAluno } = await sb.from('alunos').insert({
+        id: alunoId,
+        nome,
+        telefone: document.getElementById('mfTelefone').value.trim() || (lead?.telefone ?? ''),
+        categoria: document.getElementById('mfCategoria').value,
+        renach,
+        cpf: document.getElementById('mfCpf').value.trim() || null,
+        instrutor: document.getElementById('mfInstrutor').value || null,
+        valor_total_cnh: valorTotal,
+        data_matricula: hojeISO(),
+        stage_id: primeiraEtapaId,
+        observacoes: document.getElementById('mfObs').value.trim() || null,
+        origem_lead_id: lead ? lead.id : null,
+        criado_em: now,
+        etapa_desde: now,
+        atualizado_em: now,
+      });
+      if(erroAluno){ showToast('Erro ao matricular: ' + erroAluno.message); return; }
 
-    document.getElementById('matriculaModalOverlay').classList.remove('open');
-    showToast('Aluno matriculado e ' + totalParcelas + ' lançamento(s) criado(s) em Contas a Receber.');
-    await carregarFunil(true);
+      const totalParcelas = matriculaParcelas.length;
+      const linhasParcelas = matriculaParcelas.map((p, i) => ({
+        id: uid('cr'),
+        aluno_id: alunoId,
+        aluno_nome: nome,
+        renach,
+        descricao: totalParcelas > 1 ? `Venda de CNH — parcela ${i+1}/${totalParcelas}` : 'Venda de CNH',
+        valor: p.valor,
+        forma_pagamento: p.forma,
+        parcela_atual: i+1,
+        parcela_total: totalParcelas,
+        data_vencimento: p.vencimento,
+        status: 'pendente',
+        origem: 'matricula',
+        criado_em: now,
+        atualizado_em: now,
+      }));
+      const { error: erroParcelas } = await sb.from('contas_receber').insert(linhasParcelas);
+      if(erroParcelas){
+        // Desfaz o aluno recém-criado: ou a matrícula sai completa (aluno + parcelas), ou não sai.
+        // (Antes ficava um aluno sem parcelas e o lead virava "Virou aluno", sem como tentar de novo.)
+        const { error: erroDesfazer } = await sb.from('alunos').delete().eq('id', alunoId);
+        if(erroDesfazer){
+          showToast('ATENÇÃO: o aluno "' + nome + '" foi criado, mas as parcelas falharam (' + erroParcelas.message + ') e não consegui desfazer. Lance as parcelas manualmente ou exclua o aluno antes de tentar de novo.');
+        }else{
+          showToast('Matrícula NÃO concluída — erro ao gerar as parcelas (' + erroParcelas.message + '). Nada foi criado; você pode tentar de novo.');
+        }
+        return;
+      }
+
+      document.getElementById('matriculaModalOverlay').classList.remove('open');
+      showToast('Aluno matriculado e ' + totalParcelas + ' lançamento(s) criado(s) em Contas a Receber.');
+      await carregarFunil(true);
+    } finally {
+      salvandoMatricula = false;
+      if(btnMatricular) btnMatricular.disabled = false;
+    }
   });
 
   // Fecha qualquer modal ao clicar fora dele (na área escurecida)
@@ -3124,7 +4104,7 @@
   async function carregarAlunosModulo(forcar){
     if(alunosCarregado && !forcar) return;
     const [rAlunos, rEtapas] = await Promise.all([
-      sb.from('alunos').select('*'),
+      selecionarTudo('alunos'),
       sb.from('etapas_aluno').select('*').order('ordem'),
     ]);
     if(rAlunos.error || rEtapas.error){
@@ -3137,6 +4117,8 @@
     alunosCarregado = true;
     fillFiltroCategoriaAluno();
     refreshAlunosModulo();
+    fillFiltrosCadAlunos();
+    renderCadAlunosTable();
   }
 
   function etapaAlunoById(id){ return etapasAluno.find(s=>s.id===id); }
@@ -3148,20 +4130,25 @@
       CATEGORIAS.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
   }
 
+  // Mesma regra do Funil: etapas "ganho"/"perdido" (CNH emitida / desistente)
+  // respeitam o período, medido pela data em que o aluno ENTROU na etapa;
+  // alunos em etapas ativas da jornada ficam sempre visíveis.
+  function alunoForaDoPeriodo(a){
+    const stage = etapaAlunoById(a.stage_id);
+    const encerrado = stage && (stage.tipo === 'ganho' || stage.tipo === 'perdido');
+    if(!encerrado) return false;
+    const de = document.getElementById('alunoPeriodoDe').value;
+    const ate = document.getElementById('alunoPeriodoAte').value;
+    return !isInPeriod(a.etapa_desde || a.criado_em, de, ate);
+  }
   function filteredAlunos(){
     const q = (document.getElementById('alunoSearchInput').value || '').trim().toLowerCase();
     const cat = document.getElementById('alunoFilterCategoria').value;
-    const de = document.getElementById('alunoPeriodoDe').value;
-    const ate = document.getElementById('alunoPeriodoAte').value;
     return alunos.filter(a=>{
+      if(ehClienteServico(a)) return false;   // clientes só de serviço não fazem parte da jornada da CNH
       if(cat !== 'todos' && a.categoria !== cat) return false;
       if(q && !(`${a.nome} ${a.telefone||''}`.toLowerCase().includes(q))) return false;
-      // Mesma lógica do Funil: etapas "ganho"/"perdido" (CNH emitida/desistente)
-      // respeitam o período; etapas ativas da jornada ficam sempre visíveis.
-      const stage = etapaAlunoById(a.stage_id);
-      const encerrado = stage && (stage.tipo === 'ganho' || stage.tipo === 'perdido');
-      if(encerrado && !isInPeriod(a.criado_em, de, ate)) return false;
-      return true;
+      return !alunoForaDoPeriodo(a);
     });
   }
 
@@ -3171,13 +4158,14 @@
     renderListaCategoriasAluno();
     renderAlunoBoard();
   }
-  document.getElementById('alunoSearchInput').addEventListener('input', renderAlunoBoard);
-  document.getElementById('alunoFilterCategoria').addEventListener('change', renderAlunoBoard);
+  document.getElementById('alunoSearchInput').addEventListener('input', refreshAlunosModulo);
+  document.getElementById('alunoFilterCategoria').addEventListener('change', refreshAlunosModulo);
 
   function renderStatsAluno(){
-    const total = alunos.length;
-    const concluidos = alunos.filter(a=> etapaAlunoById(a.stage_id)?.tipo === 'ganho').length;
-    const desistentes = alunos.filter(a=> etapaAlunoById(a.stage_id)?.tipo === 'perdido').length;
+    const base = filteredAlunos();
+    const total = base.length;
+    const concluidos = base.filter(a=> etapaAlunoById(a.stage_id)?.tipo === 'ganho').length;
+    const desistentes = base.filter(a=> etapaAlunoById(a.stage_id)?.tipo === 'perdido').length;
     const ativos = total - concluidos - desistentes;
     const encerrados = concluidos + desistentes;
     const taxa = encerrados > 0 ? Math.round((concluidos/encerrados)*100) : null;
@@ -3192,9 +4180,16 @@
 
   function renderFunnelVizAluno(){
     const ordered = sortedEtapasAluno().filter(s=>s.tipo!=='perdido');
-    const counts = ordered.map(s=>alunos.filter(a=>a.stage_id===s.id).length);
-    const max = Math.max(1, ...counts);
-    document.getElementById('alunoFunnelViz').innerHTML = ordered.map((s,i)=>{
+    const base = filteredAlunos();
+    const counts = ordered.map(s=>base.filter(a=>a.stage_id===s.id).length);
+    const nSemEtapa = base.filter(a=> !etapaAlunoById(a.stage_id)).length;
+    const max = Math.max(1, nSemEtapa, ...counts);
+    const linhaSemEtapa = nSemEtapa ? `<div class="funnel-row">
+        <div class="fr-label" style="color:#b8272c;font-weight:700;">Sem etapa</div>
+        <div class="fr-track"><div class="fr-bar" style="width:${Math.max(4, Math.round((nSemEtapa/max)*100))}%;background:#b8272c"></div></div>
+        <div class="fr-count">${nSemEtapa}</div>
+      </div>` : '';
+    document.getElementById('alunoFunnelViz').innerHTML = linhaSemEtapa + ordered.map((s,i)=>{
       const c = counts[i];
       const pct = Math.max(4, Math.round((c/max)*100));
       return `<div class="funnel-row">
@@ -3206,10 +4201,10 @@
   }
 
   function renderListaCategoriasAluno(){
-    const total = alunos.length;
-    if(!total){ document.getElementById('alunoListaCategorias').innerHTML = 'Sem dados ainda.'; return; }
+    const base = filteredAlunos();
+    if(!base.length){ document.getElementById('alunoListaCategorias').innerHTML = 'Sem dados no período.'; return; }
     document.getElementById('alunoListaCategorias').innerHTML = CATEGORIAS.map(c=>{
-      const n = alunos.filter(a=>a.categoria===c.id).length;
+      const n = base.filter(a=>a.categoria===c.id).length;
       return `<div style="display:flex;justify-content:space-between;padding:4px 0;">
         <span>${c.nome}</span><strong>${n}</strong>
       </div>`;
@@ -3235,6 +4230,7 @@
       <div class="lc-meta">
         <span>${escapeHtml(aluno.telefone)} · ${daysSince(aluno.etapa_desde)} na etapa</span>
         <select class="lc-move-select" data-id="${aluno.id}">
+          ${etapaAlunoById(aluno.stage_id) ? '' : '<option value="" selected disabled>Sem etapa — escolha…</option>'}
           ${sortedEtapasAluno().map(s=>`<option value="${s.id}" ${s.id===aluno.stage_id?'selected':''}>${escapeHtml(s.nome)}</option>`).join('')}
         </select>
       </div>
@@ -3243,8 +4239,22 @@
 
   function renderAlunoBoard(){
     const list = filteredAlunos();
-    updateHiddenCountNote('alunoHiddenNote', alunos.length, list.length);
-    const cols = sortedEtapasAluno().map(stage=>{
+    const alunosJornada = alunos.filter(a=> !ehClienteServico(a));
+    updateHiddenCountNote('alunoHiddenNote', alunosJornada.length, alunosJornada.length - alunosJornada.filter(alunoForaDoPeriodo).length);
+    // Alunos sem etapa (ex.: criados por fluxos antigos) ganham uma coluna própria,
+    // para nunca ficarem invisíveis. Escolha a etapa no seletor do cartão.
+    const semEtapa = list.filter(a=> !etapaAlunoById(a.stage_id));
+    const colSemEtapa = semEtapa.length ? `<div class="stage-col" style="--stage-color:#b8272c">
+        <div class="stage-col-head">
+          <span class="stage-dot"></span>
+          <span class="stage-name">Sem etapa</span>
+          <span class="stage-count">${semEtapa.length}</span>
+        </div>
+        <div class="stage-cards" data-stage="" data-sem-etapa="1">
+          ${semEtapa.map(alunoCardHTML).join('')}
+        </div>
+      </div>` : '';
+    const cols = colSemEtapa + sortedEtapasAluno().map(stage=>{
       const items = list.filter(a=>a.stage_id===stage.id);
       return `<div class="stage-col" style="--stage-color:${stage.cor}">
         <div class="stage-col-head">
@@ -3273,7 +4283,7 @@
         zone.classList.remove('drag-over');
         const dragging = boardEl.querySelector('.lead-card.dragging');
         const id = dragging ? dragging.dataset.id : null;
-        if(id) moveAluno(id, zone.dataset.stage);
+        if(id && zone.dataset.stage) moveAluno(id, zone.dataset.stage);   // a coluna "Sem etapa" não aceita soltar
       });
     });
     boardEl.querySelectorAll('[data-action="edit-aluno"]').forEach(btn=>{
@@ -3290,11 +4300,15 @@
     const aluno = alunoById(id);
     if(!aluno || aluno.stage_id === newStageId) return;
     const now = new Date().toISOString();
+    const { error } = await sb.from('alunos').update({ stage_id: newStageId, etapa_desde: now, atualizado_em: now }).eq('id', id);
+    if(error){
+      showToast('Erro ao mover aluno: ' + error.message);
+      refreshAlunosModulo();
+      return;
+    }
     aluno.stage_id = newStageId;
     aluno.etapa_desde = now;
     aluno.atualizado_em = now;
-    const { error } = await sb.from('alunos').update({ stage_id: newStageId, etapa_desde: now, atualizado_em: now }).eq('id', id);
-    if(error){ showToast('Erro ao mover aluno: ' + error.message); return; }
     refreshAlunosModulo();
     const st = etapaAlunoById(newStageId);
     if(st && st.tipo === 'perdido' && !aluno.motivo_desistencia){
@@ -3307,8 +4321,17 @@
 
   function toggleMotivoDesistenciaField(){
     const st = etapaAlunoById(document.getElementById('afEtapa').value);
-    document.getElementById('motivoDesistenciaBlock').classList.toggle('show', !!(st && st.tipo === 'perdido'));
+    const servico = document.getElementById('afTipo').value === 'servico';
+    document.getElementById('motivoDesistenciaBlock').classList.toggle('show', !servico && !!(st && st.tipo === 'perdido'));
   }
+  // Cliente de serviços não tem etapa, data de matrícula nem valor de CNH.
+  function toggleTipoAluno(){
+    const servico = document.getElementById('afTipo').value === 'servico';
+    document.getElementById('afBlocoCnh').style.display = servico ? 'none' : '';
+    document.getElementById('afDataMatriculaBlock').style.display = servico ? 'none' : '';
+    toggleMotivoDesistenciaField();
+  }
+  document.getElementById('afTipo').addEventListener('change', toggleTipoAluno);
   document.getElementById('afEtapa').addEventListener('change', toggleMotivoDesistenciaField);
 
   async function openAlunoModal(id){
@@ -3333,11 +4356,13 @@
     document.getElementById('afEtapa').value = aluno?.stage_id || sortedEtapasAluno()[0]?.id || '';
     document.getElementById('afObs').value = aluno?.observacoes || '';
     document.getElementById('afMotivo').value = aluno?.motivo_desistencia || '';
+    document.getElementById('afTipo').value = ehClienteServico(aluno) ? 'servico' : 'cnh';
     document.getElementById('btnDeleteAluno').style.display = (aluno && papelAtual === 'admin') ? 'inline-flex' : 'none';
     document.getElementById('errAfNome').classList.remove('show');
     document.getElementById('errAfTelefone').classList.remove('show');
-    toggleMotivoDesistenciaField();
+    toggleTipoAluno();
     document.getElementById('alunoModalOverlay').classList.add('open');
+    renderServicosDoAluno(aluno ? aluno.id : null);   // lista de serviços contratados (só para aluno já cadastrado)
   }
   document.getElementById('btnNovoAluno').addEventListener('click', ()=> openAlunoModal(null));
   document.getElementById('btnCancelAlunoModal').addEventListener('click', ()=>{
@@ -3354,10 +4379,14 @@
     else document.getElementById('errAfTelefone').classList.remove('show');
     if(!valido){ showToast('Preencha nome e telefone antes de salvar.'); return; }
 
-    const novaEtapa = document.getElementById('afEtapa').value || sortedEtapasAluno()[0]?.id;
-    if(!novaEtapa){ showToast('Nenhuma etapa configurada. Verifique "Gerenciar etapas".'); return; }
+    const clienteServico = document.getElementById('afTipo').value === 'servico';
+    const novaEtapa = clienteServico ? null : (document.getElementById('afEtapa').value || sortedEtapasAluno()[0]?.id);
+    if(!clienteServico && !novaEtapa){ showToast('Nenhuma etapa configurada. Verifique "Gerenciar etapas".'); return; }
     const now = new Date().toISOString();
     const existente = editingAlunoId ? alunoById(editingAlunoId) : null;
+    if(clienteServico && existente && !ehClienteServico(existente) && (existente.stage_id || existente.data_matricula)){
+      if(!confirm('Mudar para "Cliente de serviços" tira esta pessoa da jornada da CNH (a etapa e a data de matrícula serão limpas) e ela deixa de contar como CNH vendida.\n\nContinuar?')) return;
+    }
     const stageMudou = existente ? existente.stage_id !== novaEtapa : true;
 
     const registro = {
@@ -3367,14 +4396,17 @@
       renach: document.getElementById('afRenach').value.trim() || null,
       cpf: document.getElementById('afCpf').value.trim() || null,
       instrutor: document.getElementById('afInstrutor').value || null,
-      valor_total_cnh: document.getElementById('afValorTotalCnh').value ? parseFloat(document.getElementById('afValorTotalCnh').value) : null,
-      data_matricula: document.getElementById('afDataMatricula').value || now.slice(0,10),
+      valor_total_cnh: clienteServico ? null : (document.getElementById('afValorTotalCnh').value ? parseFloat(document.getElementById('afValorTotalCnh').value) : null),
+      data_matricula: clienteServico ? null : (document.getElementById('afDataMatricula').value || hojeISO()),
       stage_id: novaEtapa,
       observacoes: document.getElementById('afObs').value.trim() || null,
-      motivo_desistencia: document.getElementById('afMotivo').value.trim() || null,
+      motivo_desistencia: clienteServico ? null : (document.getElementById('afMotivo').value.trim() || null),
       atualizado_em: now,
       etapa_desde: stageMudou ? now : (existente?.etapa_desde || now),
     };
+    // Só envia o tipo quando é preciso (cliente de serviço, ou voltando a ser aluno da CNH):
+    // assim o cadastro de aluno comum segue funcionando mesmo antes de instalar servicos-vendas.sql.
+    if(clienteServico || ehClienteServico(existente)) registro.tipo_cadastro = clienteServico ? 'servico' : 'cnh';
     if(!editingAlunoId){ registro.criado_em = now; registro.origem_lead_id = null; }
 
     const { error } = await sb.from('alunos').upsert(registro);
@@ -3427,19 +4459,12 @@
 
     document.getElementById('alunoStageList').querySelectorAll('.stage-row').forEach(row=>{
       const id = row.dataset.id;
-      row.querySelector('[data-field="cor"]').addEventListener('change', async e=>{
-        await sb.from('etapas_aluno').update({ cor: e.target.value }).eq('id', id);
-        etapaAlunoById(id).cor = e.target.value;
-      });
-      row.querySelector('[data-field="nome"]').addEventListener('change', async e=>{
-        const nome = e.target.value.trim() || etapaAlunoById(id).nome;
-        await sb.from('etapas_aluno').update({ nome }).eq('id', id);
-        etapaAlunoById(id).nome = nome;
-      });
-      row.querySelector('[data-field="tipo"]').addEventListener('change', async e=>{
-        await sb.from('etapas_aluno').update({ tipo: e.target.value }).eq('id', id);
-        etapaAlunoById(id).tipo = e.target.value;
-      });
+      row.querySelector('[data-field="cor"]').addEventListener('change', e=>
+        salvarCampoEtapa('etapas_aluno', etapaAlunoById(id), 'cor', e.target.value, renderAlunoStageList));
+      row.querySelector('[data-field="nome"]').addEventListener('change', e=>
+        salvarCampoEtapa('etapas_aluno', etapaAlunoById(id), 'nome', e.target.value.trim() || etapaAlunoById(id).nome, renderAlunoStageList));
+      row.querySelector('[data-field="tipo"]').addEventListener('change', e=>
+        salvarCampoEtapa('etapas_aluno', etapaAlunoById(id), 'tipo', e.target.value, renderAlunoStageList));
       row.querySelector('[data-act="delete"]').addEventListener('click', async ()=>{
         const emUso = alunos.some(a=>a.stage_id===id);
         if(emUso){ alert('Essa etapa tem alunos. Mova-os para outra etapa antes de excluir.'); return; }
@@ -3460,13 +4485,7 @@
     const idx = list.findIndex(s=>s.id===id);
     const swapIdx = idx + dir;
     if(swapIdx < 0 || swapIdx >= list.length) return;
-    const a = list[idx], b = list[swapIdx];
-    const tmp = a.ordem; a.ordem = b.ordem; b.ordem = tmp;
-    await Promise.all([
-      sb.from('etapas_aluno').update({ ordem: a.ordem }).eq('id', a.id),
-      sb.from('etapas_aluno').update({ ordem: b.ordem }).eq('id', b.id),
-    ]);
-    renderAlunoStageList();
+    await trocarOrdemEtapas('etapas_aluno', list[idx], list[swapIdx], renderAlunoStageList);
   }
 
   document.getElementById('btnAddAlunoStage').addEventListener('click', async ()=>{
@@ -3502,7 +4521,7 @@
     if(!cadastrosCarregados) await carregarCadastros();
     if(financeiroCarregado && !forcar) return;
     const [rReceber, rPagar, rFixas] = await Promise.all([
-      sb.from('contas_receber').select('*'),
+      selecionarTudo('contas_receber'),
       sb.from('contas_pagar').select('*'),
       sb.from('despesas_fixas').select('*'),
     ]);
@@ -3550,7 +4569,7 @@
 
   function renderContasReceber(){
     const list = getContasReceberFiltradas();
-    updateHiddenCountNote('recHiddenNote', contasReceber.length, list.length);
+    updateHiddenCountNote('recHiddenNote', contasReceber.length, contasReceber.length - contasReceber.filter(r=> statusReceberComputado(r)!=='atrasado' && !isInPeriod(r.data_vencimento, document.getElementById('recFiltroDe').value, document.getElementById('recFiltroAte').value)).length);
     const total = list.reduce((s,r)=>s+Number(r.valor||0),0);
     const recebido = list.filter(r=>r.status==='recebido').reduce((s,r)=>s+Number(r.valor||0),0);
     const pendente = list.filter(r=>statusReceberComputado(r)==='pendente').reduce((s,r)=>s+Number(r.valor||0),0);
@@ -3819,7 +4838,7 @@
   function renderContasPagar(){
     renderDespesasFixas();
     const list = getContasPagarFiltradas();
-    updateHiddenCountNote('pagHiddenNote', contasPagar.length, list.length);
+    updateHiddenCountNote('pagHiddenNote', contasPagar.length, contasPagar.length - contasPagar.filter(p=> statusPagarComputado(p)!=='atrasado' && !isInPeriod(p.data_vencimento, document.getElementById('pagFiltroDe').value, document.getElementById('pagFiltroAte').value)).length);
     const total = list.reduce((s,p)=>s+Number(p.valor||0),0);
     const pago = list.filter(p=>p.status==='pago').reduce((s,p)=>s+Number(p.valor||0),0);
     const pendente = list.filter(p=>statusPagarComputado(p)==='pendente').reduce((s,p)=>s+Number(p.valor||0),0);
@@ -3996,6 +5015,382 @@
   }
 
   // =====================================================================
+  // DASHBOARD → VENDAS DE CNH (só admin)
+  // Cada aluno matriculado no mês = 1 CNH vendida. Lê as matrículas (alunos) e
+  // as parcelas geradas na matrícula (contas_receber) e calcula tudo aqui.
+  // =====================================================================
+  let vendasDados = null;   // { alunos, parcelas, etapas } da última consulta
+  let vendasUltimo = null;  // { mes, calc } do que está na tela (usado no CSV)
+
+  function formatPrazo(dias){
+    if(dias === null || dias === undefined || isNaN(dias)) return '—';
+    const d = Math.round(dias);
+    return d === 0 ? 'À vista' : (d === 1 ? '1 dia' : d + ' dias');
+  }
+
+  // Cálculo puro (sem tela): testável e reutilizável.
+  function calcularVendasCnh(alunosLista, parcelasLista, mes, hoje){
+    hoje = hoje || hojeISO();
+    const porAluno = new Map();
+    (parcelasLista || []).forEach(p=>{
+      if(!p.aluno_id || p.origem !== 'matricula') return;   // só parcelas da venda; lançamentos manuais ficam de fora
+      if(!porAluno.has(p.aluno_id)) porAluno.set(p.aluno_id, []);
+      porAluno.get(p.aluno_id).push(p);
+    });
+    const soma = (arr)=> arr.reduce((s,p)=> s + Number(p.valor||0), 0);
+
+    const linhas = (alunosLista || [])
+      .filter(a => a.data_matricula && dataLocalISO(a.data_matricula).slice(0,7) === mes)
+      .map(a=>{
+        const dataMat = dataLocalISO(a.data_matricula);
+        const ps = (porAluno.get(a.id) || []).slice().sort((x,y)=> String(x.data_vencimento).localeCompare(String(y.data_vencimento)));
+        const somaParcelas = soma(ps);
+        const valorInformado = Number(a.valor_total_cnh) > 0 ? Number(a.valor_total_cnh) : 0;
+        const valor = valorInformado || somaParcelas;
+        let ponderado = 0;
+        ps.forEach(p=>{ ponderado += Number(p.valor||0) * Math.max(0, diasEntre(dataMat, p.data_vencimento)); });
+        const abertas = ps.filter(p=> p.status !== 'recebido');
+        const vencidas = abertas.filter(p=> p.data_vencimento && String(p.data_vencimento).slice(0,10) < hoje);
+        const recebido = soma(ps.filter(p=> p.status === 'recebido'));
+        const aReceber = soma(abertas);
+        const atrasado = soma(vencidas);
+        let situacao = 'em-dia';
+        if(!ps.length) situacao = 'sem-parcelas';
+        else if(aReceber === 0) situacao = 'quitada';
+        else if(atrasado > 0) situacao = 'atrasada';
+        return {
+          id: a.id, nome: a.nome || '', categoria: a.categoria, stage_id: a.stage_id,
+          data_matricula: dataMat,
+          valor, valorInformado: valorInformado > 0,
+          parcelas: ps.length, recebidas: ps.length - abertas.length,
+          formas: [...new Set(ps.map(p=>p.forma_pagamento).filter(Boolean))],
+          primeiroVenc: ps.length ? String(ps[0].data_vencimento).slice(0,10) : null,
+          ultimoVenc: ps.length ? String(ps[ps.length-1].data_vencimento).slice(0,10) : null,
+          somaParcelas, ponderado,
+          prazoMedio: (ps.length && somaParcelas > 0) ? ponderado / somaParcelas : null,
+          recebido, aReceber, atrasado, situacao,
+          divergente: ps.length > 0 && valorInformado > 0 && Math.abs(somaParcelas - valorInformado) > 0.01,
+        };
+      })
+      .sort((x,y)=> y.data_matricula.localeCompare(x.data_matricula) || x.nome.localeCompare(y.nome, 'pt-BR'));
+
+    const comValor = linhas.filter(l=> l.valor > 0);
+    const valorTotal = linhas.reduce((s,l)=> s + l.valor, 0);
+    const somaParc = linhas.reduce((s,l)=> s + l.somaParcelas, 0);
+    const somaPond = linhas.reduce((s,l)=> s + l.ponderado, 0);
+    const semParcelas = linhas.filter(l=> l.situacao === 'sem-parcelas');
+    const porCategoria = {};
+    CATEGORIAS.forEach(c=> porCategoria[c.id] = { n: 0, valor: 0 });
+    linhas.forEach(l=>{
+      if(!porCategoria[l.categoria]) porCategoria[l.categoria] = { n: 0, valor: 0 };
+      porCategoria[l.categoria].n++; porCategoria[l.categoria].valor += l.valor;
+    });
+    return {
+      linhas,
+      resumo: {
+        vendas: linhas.length, semValor: linhas.length - comValor.length, valorTotal,
+        semParcelas: semParcelas.length, valorSemParcelas: semParcelas.reduce((s,l)=> s + l.valor, 0),
+        ticketMedio: comValor.length ? valorTotal / comValor.length : null,
+        prazoMedio: somaParc > 0 ? somaPond / somaParc : null,
+        recebido: linhas.reduce((s,l)=> s + l.recebido, 0),
+        aReceber: linhas.reduce((s,l)=> s + l.aReceber, 0),
+        atrasado: linhas.reduce((s,l)=> s + l.atrasado, 0),
+        porCategoria,
+      },
+    };
+  }
+
+  let vendasServUltimo = null;
+  let vendasSegAtual = 'tudo';
+
+  // Cálculo puro das vendas de serviço do mês (mesmo raciocínio da CNH; o prazo conta a partir da data da venda).
+  function calcularVendasServico(vendas, parcelas, alunosLista, mes, hoje){
+    hoje = hoje || hojeISO();
+    const porVenda = new Map();
+    (parcelas || []).forEach(p => {
+      if(!p.venda_servico_id) return;
+      if(!porVenda.has(p.venda_servico_id)) porVenda.set(p.venda_servico_id, []);
+      porVenda.get(p.venda_servico_id).push(p);
+    });
+    const nomes = new Map((alunosLista || []).map(a => [a.id, a.nome]));
+    const soma = arr => arr.reduce((s, p) => s + Number(p.valor || 0), 0);
+    const linhas = (vendas || [])
+      .filter(v => v.status !== 'cancelada' && v.data_venda && dataLocalISO(v.data_venda).slice(0,7) === mes)
+      .map(v => {
+        const dataVenda = dataLocalISO(v.data_venda);
+        const ps = (porVenda.get(v.id) || []).slice().sort((x, y) => String(x.data_vencimento).localeCompare(String(y.data_vencimento)));
+        const somaParcelas = soma(ps);
+        const valor = Number(v.valor_total) || 0;
+        let ponderado = 0;
+        ps.forEach(p => { ponderado += Number(p.valor || 0) * Math.max(0, diasEntre(dataVenda, p.data_vencimento)); });
+        const abertas = ps.filter(p => p.status !== 'recebido');
+        const vencidas = abertas.filter(p => p.data_vencimento && String(p.data_vencimento).slice(0,10) < hoje);
+        const recebido = soma(ps.filter(p => p.status === 'recebido'));
+        const aReceber = soma(abertas), atrasado = soma(vencidas);
+        let situacao = 'em-dia';
+        if(!ps.length) situacao = 'sem-parcelas';
+        else if(aReceber === 0) situacao = 'quitada';
+        else if(atrasado > 0) situacao = 'atrasada';
+        return {
+          id: v.id, aluno_id: v.aluno_id, cliente: nomes.get(v.aluno_id) || '—', servico: v.servico_nome,
+          quantidade: Number(v.quantidade) || 1, data_venda: dataVenda, valor,
+          parcelas: ps.length, recebidas: ps.length - abertas.length,
+          formas: [...new Set(ps.map(p => p.forma_pagamento).filter(Boolean))],
+          primeiroVenc: ps.length ? String(ps[0].data_vencimento).slice(0,10) : null,
+          ultimoVenc: ps.length ? String(ps[ps.length - 1].data_vencimento).slice(0,10) : null,
+          somaParcelas, ponderado, prazoMedio: (ps.length && somaParcelas > 0) ? ponderado / somaParcelas : null,
+          recebido, aReceber, atrasado, situacao,
+          divergente: ps.length > 0 && Math.abs(somaParcelas - valor) > 0.01,
+        };
+      })
+      .sort((x, y) => y.data_venda.localeCompare(x.data_venda) || x.cliente.localeCompare(y.cliente, 'pt-BR'));
+
+    const valorTotal = linhas.reduce((s, l) => s + l.valor, 0);
+    const somaParc = linhas.reduce((s, l) => s + l.somaParcelas, 0);
+    const somaPond = linhas.reduce((s, l) => s + l.ponderado, 0);
+    const semParcelas = linhas.filter(l => l.situacao === 'sem-parcelas');
+    const grupos = new Map();
+    linhas.forEach(l => {
+      if(!grupos.has(l.servico)) grupos.set(l.servico, { nome: l.servico, vendas: 0, unidades: 0, valor: 0, ponderado: 0, somaParc: 0 });
+      const g = grupos.get(l.servico);
+      g.vendas++; g.unidades += l.quantidade; g.valor += l.valor; g.ponderado += l.ponderado; g.somaParc += l.somaParcelas;
+    });
+    const porServico = [...grupos.values()].sort((x, y) => y.valor - x.valor).map(g => ({
+      nome: g.nome, vendas: g.vendas, unidades: g.unidades, valor: g.valor,
+      ticket: g.vendas ? g.valor / g.vendas : null, prazo: g.somaParc > 0 ? g.ponderado / g.somaParc : null,
+    }));
+    return {
+      linhas,
+      resumo: {
+        vendas: linhas.length, unidades: linhas.reduce((s, l) => s + l.quantidade, 0), valorTotal,
+        ticketMedio: linhas.length ? valorTotal / linhas.length : null,
+        prazoMedio: somaParc > 0 ? somaPond / somaParc : null,
+        recebido: linhas.reduce((s, l) => s + l.recebido, 0),
+        aReceber: linhas.reduce((s, l) => s + l.aReceber, 0),
+        atrasado: linhas.reduce((s, l) => s + l.atrasado, 0),
+        semParcelas: semParcelas.length, valorSemParcelas: semParcelas.reduce((s, l) => s + l.valor, 0),
+        porServico,
+      },
+    };
+  }
+
+  function aplicarSegVendas(){
+    gid('vendasResumoBox').style.display = vendasSegAtual === 'tudo' ? '' : 'none';
+    gid('vendasSecCnh').style.display = (vendasSegAtual === 'tudo' || vendasSegAtual === 'cnh') ? '' : 'none';
+    gid('vendasSecServ').style.display = (vendasSegAtual === 'tudo' || vendasSegAtual === 'servicos') ? '' : 'none';
+    gid('vendasSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.seg === vendasSegAtual));
+  }
+  gid('vendasSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { vendasSegAtual = b.dataset.seg; aplicarSegVendas(); }));
+
+  function renderVendasServicos(mes, cnhAtual, cnhAnterior){
+    aplicarSegVendas();
+    const indisponivel = !!vendasDados.servicosErro;
+    const VAZIO = { linhas: [], resumo: { vendas: 0, unidades: 0, valorTotal: 0, ticketMedio: null, prazoMedio: null, recebido: 0, aReceber: 0, atrasado: 0, semParcelas: 0, valorSemParcelas: 0, porServico: [] } };
+    const cur = indisponivel ? VAZIO : calcularVendasServico(vendasDados.vendasServico, vendasDados.parcelasServico, vendasDados.alunos, mes);
+    const ant = indisponivel ? VAZIO : calcularVendasServico(vendasDados.vendasServico, vendasDados.parcelasServico, vendasDados.alunos, somaMes(mes, -1));
+    vendasServUltimo = { mes, calc: cur };
+    const rc = cnhAtual.resumo, ac = cnhAnterior.resumo, rs = cur.resumo, as = ant.resumo;
+
+    // ---- Resumo geral: CNH + serviços ----
+    const nTotal = rc.vendas + rs.vendas, nAnt = ac.vendas + as.vendas;
+    const vTotal = rc.valorTotal + rs.valorTotal, vAnt = ac.valorTotal + as.valorTotal;
+    const rec = rc.recebido + rs.recebido, aRec = rc.aReceber + rs.aReceber, atr = rc.atrasado + rs.atrasado;
+    const delta = (atual, anterior, fmt) => {
+      const d = atual - anterior;
+      return `<div class="stat-sub ${d > 0 ? 'up' : (d < 0 ? 'down' : '')}">mês anterior: ${fmt(anterior)} (${d > 0 ? '+' : ''}${fmt(d)})</div>`;
+    };
+    const quebraN = indisponivel ? `${rc.vendas} CNH · serviços indisponíveis` : `${rc.vendas} CNH + ${rs.vendas} serviço${rs.vendas === 1 ? '' : 's'}`;
+    const quebraV = indisponivel ? 'só CNH (serviços indisponíveis)' : `CNH ${formatMoney(rc.valorTotal)} + serviços ${formatMoney(rs.valorTotal)}`;
+    gid('vendasResumoRow').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Vendas no mês</div><div class="stat-value">${nTotal}</div><div class="stat-sub">${quebraN}</div>${delta(nTotal, nAnt, x => String(x))}</div>
+      <div class="stat-card win"><div class="stat-label">Valor vendido</div><div class="stat-value">${formatMoney(vTotal)}</div><div class="stat-sub">${quebraV}</div>${delta(vTotal, vAnt, formatMoney)}</div>
+      <div class="stat-card win"><div class="stat-label">Já recebido</div><div class="stat-value">${formatMoney(rec)}</div><div class="stat-sub">${vTotal > 0 ? Math.round((rec / vTotal) * 100) + '% do valor vendido' : '—'}</div></div>
+      <div class="stat-card ${atr > 0 ? 'lost' : ''}"><div class="stat-label">A receber</div><div class="stat-value">${formatMoney(aRec)}</div><div class="stat-sub ${atr > 0 ? 'down' : ''}">${atr > 0 ? 'em atraso: ' + formatMoney(atr) : 'nenhuma parcela em atraso'}</div></div>`;
+
+    // ---- Seção de serviços ----
+    const avisoEl = gid('vendasServAviso'), tbody = gid('tbodyVendasServ'), tfoot = gid('tfootVendasServ');
+    if(indisponivel){
+      avisoEl.style.display = 'block'; avisoEl.textContent = msgInstalarServicos(vendasDados.servicosErro);
+      gid('vendasServStats').innerHTML = ''; gid('vendasPorServico').innerHTML = ''; tfoot.innerHTML = '';
+      tbody.innerHTML = '<tr><td colspan="10" class="cell-muted">—</td></tr>';
+      return;
+    }
+    if(rs.semParcelas > 0){
+      avisoEl.style.display = 'block';
+      avisoEl.innerHTML = `⚠ <b>${rs.semParcelas} de ${rs.vendas}</b> venda(s) de serviço deste mês não têm parcelas lançadas${rs.valorSemParcelas > 0 ? ` (${formatMoney(rs.valorSemParcelas)})` : ''}. "Já recebido", "A receber" e "Prazo médio" consideram apenas as vendas com parcelas.`;
+    }else{
+      avisoEl.style.display = 'none';
+    }
+    gid('vendasServStats').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Serviços vendidos</div><div class="stat-value">${rs.vendas}</div><div class="stat-sub">${rs.unidades} unidade${rs.unidades === 1 ? '' : 's'} no total</div>${delta(rs.vendas, as.vendas, x => String(x))}</div>
+      <div class="stat-card win"><div class="stat-label">Valor em serviços</div><div class="stat-value">${formatMoney(rs.valorTotal)}</div>${delta(rs.valorTotal, as.valorTotal, formatMoney)}</div>
+      <div class="stat-card"><div class="stat-label">Ticket médio</div><div class="stat-value">${rs.ticketMedio === null ? '—' : formatMoney(rs.ticketMedio)}</div><div class="stat-sub">valor médio por venda</div></div>
+      <div class="stat-card rate"><div class="stat-label">Prazo médio de recebimento</div><div class="stat-value">${formatPrazo(rs.prazoMedio)}</div><div class="stat-sub">da venda até cada vencimento</div></div>`;
+    gid('vendasPorServico').innerHTML = rs.porServico.map(g =>
+      `<div class="fs-chip">${escapeHtml(g.nome)}<b>${g.vendas} venda${g.vendas === 1 ? '' : 's'} · ${g.unidades} un. · ${formatMoney(g.valor)}</b></div>`).join('');
+    if(!cur.linhas.length){
+      tbody.innerHTML = '<tr><td colspan="10" class="cell-muted">Nenhuma venda de serviço neste mês.</td></tr>';
+      tfoot.innerHTML = '';
+      return;
+    }
+    const SIT = { 'quitada': ['recebido', 'Quitada'], 'em-dia': ['pendente', 'Em dia'], 'atrasada': ['atrasado', 'Em atraso'], 'sem-parcelas': ['inativo', 'Sem parcelas'] };
+    const vazio = '<span class="cell-muted">—</span>';
+    tbody.innerHTML = cur.linhas.map(l => {
+      const [pill, rotulo] = SIT[l.situacao];
+      const aviso = l.divergente ? ` <span class="valor-aviso" title="${escapeHtml('A soma das parcelas (' + formatMoney(l.somaParcelas) + ') difere do valor da venda (' + formatMoney(l.valor) + ').')}">⚠</span>` : '';
+      return `<tr>
+        <td class="num">${formatDateBR(l.data_venda)}</td>
+        <td><strong>${escapeHtml(l.cliente)}</strong></td>
+        <td>${escapeHtml(l.servico)}</td>
+        <td class="num">${l.quantidade}</td>
+        <td class="num">${formatMoney(l.valor)}${aviso}</td>
+        <td>${l.parcelas ? `${l.recebidas}/${l.parcelas} recebidas<div class="cell-muted">${escapeHtml(l.formas.join(' + '))}</div>` : vazio}</td>
+        <td class="num">${formatPrazo(l.prazoMedio)}</td>
+        <td class="num">${formatMoney(l.recebido)}</td>
+        <td class="num">${formatMoney(l.aReceber)}${l.atrasado > 0 ? `<div class="cell-muted" style="color:#b8272c;">atrasado: ${formatMoney(l.atrasado)}</div>` : ''}</td>
+        <td><span class="status-pill ${pill}">${rotulo}</span></td>
+      </tr>`;
+    }).join('');
+    tfoot.innerHTML = `<tr><td colspan="3">Total — ${rs.vendas} venda(s)</td><td class="num">${rs.unidades}</td><td class="num">${formatMoney(rs.valorTotal)}</td><td></td><td class="num">${formatPrazo(rs.prazoMedio)}</td><td class="num">${formatMoney(rs.recebido)}</td><td class="num">${formatMoney(rs.aReceber)}</td><td></td></tr>`;
+  }
+  gid('btnVendasServCsv').addEventListener('click', () => {
+    if(!vendasServUltimo || !vendasServUltimo.calc.linhas.length){ showToast('Nenhuma venda de serviço neste mês para exportar.'); return; }
+    const SIT = { 'quitada': 'Quitada', 'em-dia': 'Em dia', 'atrasada': 'Em atraso', 'sem-parcelas': 'Sem parcelas' };
+    baixarCsv(`vendas-servicos-${vendasServUltimo.mes}.csv`,
+      ['Data da venda','Cliente','Serviço','Quantidade','Valor total','Nº de parcelas','Parcelas recebidas','Forma(s) de pagamento','1º vencimento','Último vencimento','Prazo médio (dias)','Recebido','A receber','Em atraso','Situação'],
+      vendasServUltimo.calc.linhas.map(l => [
+        dataBR(l.data_venda), l.cliente, l.servico, l.quantidade, numeroCsv(l.valor), l.parcelas, l.recebidas, l.formas.join(' + '),
+        dataBR(l.primeiroVenc), dataBR(l.ultimoVenc), l.prazoMedio === null ? '' : Math.round(l.prazoMedio),
+        numeroCsv(l.recebido), numeroCsv(l.aReceber), numeroCsv(l.atrasado), SIT[l.situacao],
+      ]));
+    showToast('Vendas de serviços de ' + vendasServUltimo.mes + ' exportadas.');
+  });
+
+  async function carregarVendasCnh(){
+    if(papelAtual !== 'admin') return;
+    const tbody = document.getElementById('tbodyVendasCnh');
+    const [rA, rP, rE, rV, rPS] = await Promise.all([
+      selecionarTudo('alunos', 'id, nome, categoria, valor_total_cnh, data_matricula, stage_id'),
+      selecionarTudo('contas_receber', 'id, aluno_id, valor, data_vencimento, status, forma_pagamento, origem'),
+      sb.from('etapas_aluno').select('id, nome, cor, tipo'),
+      selecionarTudo('vendas_servico', 'id, aluno_id, servico_nome, quantidade, valor_total, data_venda, status'),
+      selecionarTudo('contas_receber', 'id, venda_servico_id, valor, data_vencimento, status, forma_pagamento', 'id', [['origem', 'servico']]),
+    ]);
+    const erro = rA.error || rP.error || rE.error;
+    if(erro){
+      vendasDados = null;
+      ['vendasResumoRow','vendasServStats','vendasPorServico','tfootVendasServ'].forEach(id => { gid(id).innerHTML = ''; });
+      gid('vendasServAviso').style.display = 'none';
+      gid('tbodyVendasServ').innerHTML = '<tr><td colspan="10" class="cell-muted">—</td></tr>';
+      document.getElementById('vendasStatsRow').innerHTML = '';
+      document.getElementById('vendasAviso').style.display = 'none';
+      document.getElementById('vendasPorCategoria').innerHTML = '';
+      document.getElementById('tfootVendasCnh').innerHTML = '';
+      tbody.innerHTML = `<tr><td colspan="10" class="cell-muted">Não foi possível carregar as vendas: ${escapeHtml(erro.message)}</td></tr>`;
+      return;
+    }
+    // O CNH não depende dos serviços: se as tabelas de serviços ainda não existem, só a seção de serviços avisa.
+    vendasDados = {
+      alunos: rA.data, parcelas: rP.data, etapas: rE.data || [],
+      vendasServico: rV.data || [], parcelasServico: rPS.data || [], servicosErro: rV.error || rPS.error || null,
+    };
+    renderVendasCnh();
+  }
+
+  function renderVendasCnh(){
+    if(!vendasDados) return;
+    const mesInput = document.getElementById('vendasMes');
+    if(!/^\d{4}-\d{2}$/.test(mesInput.value)) mesInput.value = hojeISO().slice(0,7);
+    const mes = mesInput.value;
+    const cur = calcularVendasCnh(vendasDados.alunos, vendasDados.parcelas, mes);
+    const ant = calcularVendasCnh(vendasDados.alunos, vendasDados.parcelas, somaMes(mes, -1));
+    vendasUltimo = { mes, calc: cur };
+    const r = cur.resumo, a = ant.resumo;
+    renderVendasServicos(mes, cur, ant);   // resumo geral (CNH + serviços) e seção de serviços
+
+    const delta = (atual, anterior, fmt)=>{
+      const d = atual - anterior;
+      const cls = d > 0 ? 'up' : (d < 0 ? 'down' : '');
+      return `<div class="stat-sub ${cls}">mês anterior: ${fmt(anterior)} (${d > 0 ? '+' : ''}${fmt(d)})</div>`;
+    };
+    const pctRecebido = r.valorTotal > 0 ? Math.round((r.recebido / r.valorTotal) * 100) : null;
+    document.getElementById('vendasStatsRow').innerHTML = `
+      <div class="stat-card"><div class="stat-label">CNHs vendidas</div><div class="stat-value">${r.vendas}</div>${delta(r.vendas, a.vendas, x=>String(x))}</div>
+      <div class="stat-card win"><div class="stat-label">Valor vendido</div><div class="stat-value">${formatMoney(r.valorTotal)}</div>${delta(r.valorTotal, a.valorTotal, formatMoney)}</div>
+      <div class="stat-card"><div class="stat-label">Ticket médio</div><div class="stat-value">${r.ticketMedio === null ? '—' : formatMoney(r.ticketMedio)}</div>
+        <div class="stat-sub">mês anterior: ${a.ticketMedio === null ? '—' : formatMoney(a.ticketMedio)}${r.semValor ? ` · ${r.semValor} venda(s) sem valor informado` : ''}</div></div>
+      <div class="stat-card rate"><div class="stat-label">Prazo médio de recebimento</div><div class="stat-value">${formatPrazo(r.prazoMedio)}</div><div class="stat-sub">da matrícula até cada vencimento, ponderado pelo valor</div></div>
+      <div class="stat-card win"><div class="stat-label">Já recebido</div><div class="stat-value">${formatMoney(r.recebido)}</div><div class="stat-sub">${pctRecebido === null ? '—' : pctRecebido + '% do valor vendido'}</div></div>
+      <div class="stat-card ${r.atrasado > 0 ? 'lost' : ''}"><div class="stat-label">A receber</div><div class="stat-value">${formatMoney(r.aReceber)}</div>
+        <div class="stat-sub ${r.atrasado > 0 ? 'down' : ''}">${r.atrasado > 0 ? 'em atraso: ' + formatMoney(r.atrasado) : 'nenhuma parcela em atraso'}</div></div>`;
+
+    const elAviso = document.getElementById('vendasAviso');
+    if(r.semParcelas > 0){
+      elAviso.innerHTML = `⚠ <b>${r.semParcelas} de ${r.vendas}</b> venda(s) deste mês não têm parcelas lançadas${r.valorSemParcelas > 0 ? ` (${formatMoney(r.valorSemParcelas)} em CNH)` : ''}. "Já recebido", "A receber" e "Prazo médio" consideram apenas as vendas com parcelas.`;
+      elAviso.style.display = 'block';
+    }else{
+      elAviso.style.display = 'none';
+    }
+
+    document.getElementById('vendasPorCategoria').innerHTML = Object.keys(r.porCategoria).map(id=>{
+      const c = r.porCategoria[id];
+      return `<div class="fs-chip">Categoria ${escapeHtml(id)}<b>${c.n} · ${formatMoney(c.valor)}</b></div>`;
+    }).join('');
+
+    const tbody = document.getElementById('tbodyVendasCnh');
+    const tfoot = document.getElementById('tfootVendasCnh');
+    if(!cur.linhas.length){
+      tbody.innerHTML = '<tr><td colspan="10" class="cell-muted">Nenhuma matrícula neste mês.</td></tr>';
+      tfoot.innerHTML = '';
+      return;
+    }
+    const SIT = { 'quitada':['recebido','Quitada'], 'em-dia':['pendente','Em dia'], 'atrasada':['atrasado','Em atraso'], 'sem-parcelas':['inativo','Sem parcelas'] };
+    const vazio = '<span class="cell-muted">—</span>';
+    tbody.innerHTML = cur.linhas.map(l=>{
+      const cat = categoriaById(l.categoria);
+      const et = vendasDados.etapas.find(e=> e.id === l.stage_id);
+      const [pill, rotulo] = SIT[l.situacao];
+      const aviso = l.divergente ? ` <span class="valor-aviso" title="${escapeHtml('A soma das parcelas (' + formatMoney(l.somaParcelas) + ') difere do valor da CNH (' + formatMoney(l.valor) + ').')}">⚠</span>` : '';
+      const venc = !l.parcelas ? vazio : (l.primeiroVenc === l.ultimoVenc ? formatDateBR(l.primeiroVenc) : `${formatDateBR(l.primeiroVenc)} → ${formatDateBR(l.ultimoVenc)}`);
+      return `<tr>
+        <td class="num">${formatDateBR(l.data_matricula)}</td>
+        <td><strong>${escapeHtml(l.nome)}</strong> <span class="badge" style="background:${cat.cor}">${escapeHtml(cat.id)}</span></td>
+        <td>${et ? `<span class="etapa-tag"><i style="background:${escapeHtml(et.cor)}"></i>${escapeHtml(et.nome)}</span>` : '<span class="etapa-tag" style="color:#b8272c;font-weight:700;">Sem etapa</span>'}</td>
+        <td class="num">${l.valor > 0 ? formatMoney(l.valor) : '<span class="cell-muted">sem valor</span>'}${aviso}</td>
+        <td>${l.parcelas ? `${l.recebidas}/${l.parcelas} recebidas<div class="cell-muted">${escapeHtml(l.formas.join(' + '))}</div>` : vazio}</td>
+        <td class="num">${venc}</td>
+        <td class="num">${formatPrazo(l.prazoMedio)}</td>
+        <td class="num">${formatMoney(l.recebido)}</td>
+        <td class="num">${formatMoney(l.aReceber)}${l.atrasado > 0 ? `<div class="cell-muted" style="color:#b8272c;">atrasado: ${formatMoney(l.atrasado)}</div>` : ''}</td>
+        <td><span class="status-pill ${pill}">${rotulo}</span></td>
+      </tr>`;
+    }).join('');
+    tfoot.innerHTML = `<tr><td colspan="3">Total — ${r.vendas} CNH(s)</td><td class="num">${formatMoney(r.valorTotal)}</td><td></td><td></td><td class="num">${formatPrazo(r.prazoMedio)}</td><td class="num">${formatMoney(r.recebido)}</td><td class="num">${formatMoney(r.aReceber)}</td><td></td></tr>`;
+  }
+  document.getElementById('vendasMes').addEventListener('change', renderVendasCnh);
+  document.getElementById('vendasMesAnterior').addEventListener('click', ()=>{
+    const el = document.getElementById('vendasMes'); el.value = somaMes(el.value || hojeISO().slice(0,7), -1); renderVendasCnh();
+  });
+  document.getElementById('vendasMesProximo').addEventListener('click', ()=>{
+    const el = document.getElementById('vendasMes'); el.value = somaMes(el.value || hojeISO().slice(0,7), 1); renderVendasCnh();
+  });
+  document.getElementById('vendasMesAtual').addEventListener('click', ()=>{
+    document.getElementById('vendasMes').value = hojeISO().slice(0,7); renderVendasCnh();
+  });
+  document.getElementById('btnVendasCsv').addEventListener('click', ()=>{
+    if(!vendasUltimo || !vendasUltimo.calc.linhas.length){ showToast('Nenhuma venda neste mês para exportar.'); return; }
+    const SIT = { 'quitada':'Quitada', 'em-dia':'Em dia', 'atrasada':'Em atraso', 'sem-parcelas':'Sem parcelas' };
+    baixarCsv(`vendas-cnh-${vendasUltimo.mes}.csv`,
+      ['Data da matrícula','Aluno','Categoria','Etapa','Valor da CNH','Nº de parcelas','Parcelas recebidas','Forma(s) de pagamento','1º vencimento','Último vencimento','Prazo médio (dias)','Recebido','A receber','Em atraso','Situação'],
+      vendasUltimo.calc.linhas.map(l=>[
+        dataBR(l.data_matricula), l.nome, l.categoria, vendasDados.etapas.find(e=>e.id===l.stage_id)?.nome || '',
+        numeroCsv(l.valor), l.parcelas, l.recebidas, l.formas.join(' + '), dataBR(l.primeiroVenc), dataBR(l.ultimoVenc),
+        l.prazoMedio === null ? '' : Math.round(l.prazoMedio), numeroCsv(l.recebido), numeroCsv(l.aReceber), numeroCsv(l.atrasado), SIT[l.situacao]
+      ]));
+    showToast('Vendas de ' + vendasUltimo.mes + ' exportadas.');
+  });
+
+  // =====================================================================
   // MÓDULO AGENDA — Grade do dia por instrutor + Lista + Detecção de conflito
   // =====================================================================
   const AGENDA_DAY_START = 7*60;
@@ -4026,7 +5421,7 @@
     if(!frotaCarregada) await carregarFrota();
     if(!alunosCarregado) await carregarAlunosModulo();
     if(agendaCarregada && !forcar) return;
-    const { data, error } = await sb.from('agendamentos').select('*');
+    const { data, error } = await selecionarTudo('agendamentos');
     if(error){
       showToast('Erro ao carregar a Agenda — veja o console (F12).');
       console.error('[Agenda]', error);
@@ -4044,19 +5439,36 @@
     renderAgendamentosTable();
   }
 
-  function fillAgendaSelects(){
+  function fillAgendaSelects(instrutorAtualId){
+    // Guarda o que já estava escolhido: recarregar a agenda não pode apagar o formulário aberto.
+    const antes = {
+      aluno: document.getElementById('agAluno').value,
+      instrutor: document.getElementById('agInstrutor').value,
+      veiculo: document.getElementById('agVeiculo').value,
+    };
+    const instrutorAtual = instrutorAtualId || antes.instrutor;
     const optsAlunos = alunos.map(a=>`<option value="${a.id}">${escapeHtml(a.nome)}</option>`).join('');
     document.getElementById('agAluno').innerHTML = optsAlunos || '<option value="">Nenhum aluno cadastrado</option>';
 
-    const optsInstrutores = instrutores.map(i=>`<option value="${i.id}">${escapeHtml(i.nome)}</option>`).join('');
+    // Instrutor inativo não é oferecido para novas aulas (a grade só mostra instrutores ativos),
+    // a não ser que seja o instrutor da aula que está sendo editada.
+    const rotuloInstrutor = i => escapeHtml(i.nome) + (i.status === 'inativo' ? ' (inativo)' : '');
+    const optsInstrutores = instrutores.filter(i=> i.status !== 'inativo' || i.id === instrutorAtual)
+      .map(i=>`<option value="${i.id}">${rotuloInstrutor(i)}</option>`).join('');
     document.getElementById('agInstrutor').innerHTML = optsInstrutores || '<option value="">Nenhum instrutor cadastrado</option>';
 
     const optsVeiculos = veiculos.filter(v=>v.status !== 'inativo').map(v=>`<option value="${v.id}">${escapeHtml(v.placa)} — ${escapeHtml(v.modelo)}</option>`).join('');
     document.getElementById('agVeiculo').innerHTML = '<option value="">Sem veículo definido</option>' + optsVeiculos;
 
     const filtroAtual = document.getElementById('agListaInstrutor').value;
-    document.getElementById('agListaInstrutor').innerHTML = '<option value="todos">Todos os instrutores</option>' + optsInstrutores;
+    document.getElementById('agListaInstrutor').innerHTML = '<option value="todos">Todos os instrutores</option>' +
+      instrutores.map(i=>`<option value="${i.id}">${rotuloInstrutor(i)}</option>`).join('');   // o filtro enxerga todos, inclusive inativos (histórico)
     if(filtroAtual) document.getElementById('agListaInstrutor').value = filtroAtual;
+
+    // Restaura as escolhas do formulário, se ainda existirem.
+    [['agAluno', antes.aluno], ['agInstrutor', antes.instrutor], ['agVeiculo', antes.veiculo]].forEach(([id, valor])=>{
+      if(valor) document.getElementById(id).value = valor;
+    });
   }
 
   function checkConflitosAgenda({data, horaInicio, duracaoMinutos, instrutorId, veiculoId, excludeId}){
@@ -4084,7 +5496,8 @@
   function renderAgendaGrid(){
     const grid = document.getElementById('agendaGrid');
     const dataSel = document.getElementById('agendaData').value || hojeISO();
-    const cols = instrutores.filter(i=>i.status !== 'inativo');
+    const comAulaNoDia = new Set(agendamentos.filter(a=> a.data === dataSel).map(a=> a.instrutor_id));
+    const cols = instrutores.filter(i=> i.status !== 'inativo' || comAulaNoDia.has(i.id));
     const totalSlots = (AGENDA_DAY_END - AGENDA_DAY_START) / AGENDA_SLOT_MIN;
     const totalHeight = totalSlots * AGENDA_ROW_PX;
     const HEAD_H = 40;
@@ -4112,7 +5525,7 @@
         </div>`;
       }).join('');
       return `<div class="agenda-instrutor-col">
-        <div class="agenda-col-head">${escapeHtml(inst.nome)}</div>
+        <div class="agenda-col-head">${escapeHtml(inst.nome)}${inst.status === 'inativo' ? ' (inativo)' : ''}</div>
         <div class="agenda-col-body" style="height:${totalHeight}px;" data-instrutor="${inst.id}">${blocksHtml}</div>
       </div>`;
     }).join('');
@@ -4142,13 +5555,13 @@
   document.getElementById('btnAgendaDiaAnterior').addEventListener('click', ()=>{
     const atual = document.getElementById('agendaData').value || hojeISO();
     const d = new Date(atual + 'T00:00:00'); d.setDate(d.getDate()-1);
-    document.getElementById('agendaData').value = d.toISOString().slice(0,10);
+    document.getElementById('agendaData').value = ymdFromDate(d);
     renderAgendaGrid();
   });
   document.getElementById('btnAgendaProximoDia').addEventListener('click', ()=>{
     const atual = document.getElementById('agendaData').value || hojeISO();
     const d = new Date(atual + 'T00:00:00'); d.setDate(d.getDate()+1);
-    document.getElementById('agendaData').value = d.toISOString().slice(0,10);
+    document.getElementById('agendaData').value = ymdFromDate(d);
     renderAgendaGrid();
   });
   document.getElementById('btnNovaAula').addEventListener('click', ()=> openAgendamentoModal(null));
@@ -4179,7 +5592,7 @@
 
   function renderAgendamentosTable(){
     const list = filteredAgendamentos();
-    updateHiddenCountNote('agListaHiddenNote', agendamentos.length, list.length);
+    updateHiddenCountNote('agListaHiddenNote', agendamentos.length, agendamentos.length - agendamentos.filter(a=> !isInPeriod(a.data, document.getElementById('agListaDe').value, document.getElementById('agListaAte').value)).length);
     const tbody = document.getElementById('tbodyAgendamentos');
     if(!list.length){
       tbody.innerHTML = '<tr><td colspan="7" class="cell-muted">Nenhuma aula encontrada para os filtros selecionados.</td></tr>';
@@ -4211,8 +5624,8 @@
 
   function openAgendamentoModal(id, prefill){
     editingAgendamentoId = id || null;
-    fillAgendaSelects();
     const a = id ? agendamentoById(id) : null;
+    fillAgendaSelects(a?.instrutor_id);
     document.getElementById('agendamentoModalTitle').textContent = a ? 'Editar Aula' : 'Nova Aula';
     document.getElementById('agAluno').value = a?.aluno_id || '';
     document.getElementById('agInstrutor').value = a?.instrutor_id || prefill?.instrutorId || '';
@@ -4276,7 +5689,21 @@
     if(!editingAgendamentoId) registro.criado_em = now;
 
     const { error } = await sb.from('agendamentos').upsert(registro);
-    if(error){ showToast('Erro ao salvar: ' + error.message); return; }
+    if(error){
+      if(error.code === '23P01'){
+        // Regra do banco: horário já ocupado (instrutor ou veículo). Acontece quando outra pessoa
+        // marcou o horário depois que esta tela foi carregada. Mostra o motivo, atualiza a agenda
+        // (para a grade já exibir a aula que causou o conflito) e deixa o formulário aberto para ajustar.
+        const aviso = document.getElementById('agConflitoAvisos');
+        aviso.style.display = 'block';
+        aviso.innerHTML = 'Não foi possível salvar — ' + escapeHtml(error.message) + (error.hint ? '<br><small>' + escapeHtml(error.hint) + '</small>' : '');
+        showToast('Horário já ocupado — a agenda foi atualizada. Ajuste o horário, o instrutor ou o veículo.');
+        await carregarAgenda(true);
+        return;
+      }
+      showToast('Erro ao salvar: ' + error.message);
+      return;
+    }
     document.getElementById('agendamentoModalOverlay').classList.remove('open');
     showToast(editingAgendamentoId ? 'Aula atualizada.' : 'Aula agendada.');
     await carregarAgenda(true);
@@ -4292,12 +5719,14 @@
   });
 
   // ---------- Liga os filtros rápidos de período nos 6 módulos que usam ----------
-  initPeriodQuick('funil', 'funilPeriodoDe', 'funilPeriodoAte', renderBoard);
-  initPeriodQuick('alunos', 'alunoPeriodoDe', 'alunoPeriodoAte', renderAlunoBoard);
+  initPeriodQuick('funil', 'funilPeriodoDe', 'funilPeriodoAte', refreshFunil);
+  initPeriodQuick('alunos', 'alunoPeriodoDe', 'alunoPeriodoAte', refreshAlunosModulo);
   initPeriodQuick('contas-receber', 'recFiltroDe', 'recFiltroAte', renderContasReceber);
   initPeriodQuick('contas-pagar', 'pagFiltroDe', 'pagFiltroAte', renderContasPagar);
   initPeriodQuick('manutencoes', 'manutencaoFiltroDe', 'manutencaoFiltroAte', renderManutencoesTable);
   initPeriodQuick('agenda-lista', 'agListaDe', 'agListaAte', renderAgendamentosTable);
+  initPeriodQuick('cad-alunos', 'cadAlunoDe', 'cadAlunoAte', renderCadAlunosTable, 'tudo');   // cadastro: por padrão mostra TODOS os alunos
+  document.getElementById('vendasMes').value = hojeISO().slice(0,7);
 
   // ---------- Ao abrir a página: já tem sessão salva? ----------
   (async function init(){
