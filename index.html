@@ -272,6 +272,32 @@
   .seg-control button.active{background:var(--ink);color:#fff;}
   .badge-servico{background:#efe7ff;color:#5b3aa8;border:1px solid #d9c9ff;}
   .servico-linha input[type=text], .servico-linha input[type=number]{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-family:inherit;font-size:13px;background:#fafaf8;}
+  /* Ficha do aluno */
+  .modal.ficha{max-width:960px;padding:0;overflow:hidden;display:flex;flex-direction:column;}
+  .ficha-head{background:var(--asphalt);color:#fff;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;}
+  .ficha-head h2{font-family:'Sora';font-size:20px;margin:0 0 8px;color:#fff;}
+  .ficha-head .ficha-tags{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .ficha-head .ficha-acoes{display:flex;gap:8px;flex-wrap:wrap;}
+  .ficha-head .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25);}
+  .ficha-situacao{font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;display:inline-block;}
+  .ficha-situacao.em-dia{background:#dcf5e8;color:#0d7a45;}
+  .ficha-situacao.quitado{background:#e2f0ff;color:#1e5fbf;}
+  .ficha-situacao.em-atraso{background:#fde2e2;color:#b8272c;}
+  .ficha-situacao.sem-lancamentos{background:#eee;color:#555;}
+  .ficha-body{padding:20px 24px 24px;overflow-y:auto;}
+  .ficha-dados{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 18px;margin-bottom:6px;}
+  .ficha-dados > div > span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;margin-bottom:2px;}
+  .ficha-dados > div > b{font-size:13.5px;font-weight:600;word-break:break-word;}
+  .ficha-dados .ficha-obs{grid-column:1/-1;}
+  .ficha-dados .ficha-obs b{font-weight:400;white-space:pre-wrap;}
+  .ficha-barra{height:10px;border-radius:999px;background:#eee;overflow:hidden;display:flex;margin:-8px 0 6px;}
+  .ficha-barra i{display:block;height:100%;}
+  .ficha-barra .rec{background:var(--green);} .ficha-barra .atr{background:var(--red);} .ficha-barra .abe{background:var(--yellow);}
+  .ficha-legenda{font-size:11.5px;color:var(--muted);margin-bottom:18px;display:flex;gap:16px;flex-wrap:wrap;}
+  .ficha-legenda i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;}
+  .ficha-link{background:none;border:none;padding:0;font:inherit;font-weight:700;color:inherit;cursor:pointer;text-align:left;}
+  .ficha-link:hover{text-decoration:underline;}
+  @media (max-width:760px){ .ficha-dados{grid-template-columns:repeat(2,1fr);} }
   .vs-venda{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.8px;}
   .vs-venda:last-child{border-bottom:none;}
   .vs-venda.cancelada{opacity:.55;text-decoration:line-through;}
@@ -1381,6 +1407,29 @@
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- Ficha do aluno -->
+<div class="modal-overlay" id="fichaAlunoOverlay">
+  <div class="modal ficha">
+    <div class="ficha-head">
+      <div>
+        <h2 id="fichaNome">—</h2>
+        <div class="ficha-tags" id="fichaTags"></div>
+      </div>
+      <div class="ficha-acoes">
+        <button type="button" class="btn btn-yellow" id="btnFichaVenda">Registrar venda</button>
+        <button type="button" class="btn btn-ghost" id="btnFichaEditar">Editar cadastro</button>
+        <button type="button" class="btn btn-ghost" id="btnFichaFechar">Fechar</button>
+      </div>
+    </div>
+    <div class="ficha-body">
+      <div class="section-title" style="margin-top:0;">Dados do aluno</div>
+      <div class="ficha-dados" id="fichaDados"></div>
+      <div class="section-title">Financeiro</div>
+      <div id="fichaFinanceiro" class="cell-muted">Carregando…</div>
+    </div>
   </div>
 </div>
 
@@ -2665,10 +2714,8 @@
     const tbody = document.getElementById('tbodyCadAlunos');
     const lista = filteredCadAlunos();
     updateHiddenCountNote('cadAlunoHiddenNote', alunos.length, alunos.length - alunos.filter(alunoCadForaDoPeriodo).length);
-    const valorTotal = lista.reduce((s,a)=> s + Number(a.valor_total_cnh||0), 0);
     document.getElementById('cadAlunoResumo').innerHTML = `
-      <div class="fs-chip">Alunos na lista<b>${lista.length}</b></div>
-      <div class="fs-chip">Valor total das CNHs<b>${formatMoney(valorTotal)}</b></div>`;
+      <div class="fs-chip">Alunos na lista<b>${lista.length}</b></div>`;
     if(!lista.length){
       tbody.innerHTML = '<tr><td colspan="10" class="cell-muted">Nenhum aluno encontrado com esses filtros.</td></tr>';
       return;
@@ -2678,7 +2725,7 @@
       const cat = categoriaById(a.categoria);
       const et = etapaAlunoById(a.stage_id);
       return `<tr>
-        <td><strong>${escapeHtml(a.nome)}</strong>${ehClienteServico(a) ? ' <span class="badge badge-servico">Cliente de serviço</span>' : ''}</td>
+        <td><button type="button" class="ficha-link" data-act="ficha-cad-aluno" data-id="${escapeHtml(a.id)}" title="Abrir a ficha do aluno">${escapeHtml(a.nome)}</button>${ehClienteServico(a) ? ' <span class="badge badge-servico">Cliente de serviço</span>' : ''}</td>
         <td class="num">${a.telefone ? escapeHtml(a.telefone) : vazio}</td>
         <td><span class="badge" style="background:${cat.cor}">${cat.id}</span></td>
         <td>${a.renach ? escapeHtml(a.renach) : vazio}</td>
@@ -2695,6 +2742,7 @@
       </tr>`;
     }).join('');
     tbody.querySelectorAll('[data-act="edit-cad-aluno"]').forEach(btn=> btn.addEventListener('click', ()=> openAlunoModal(btn.dataset.id)));
+    tbody.querySelectorAll('[data-act="ficha-cad-aluno"]').forEach(btn=> btn.addEventListener('click', ()=> abrirFichaAluno(btn.dataset.id)));
   }
   ['cadAlunoSearch','cadAlunoCategoria','cadAlunoEtapa','cadAlunoInstrutor','cadAlunoTipo','cadAlunoOrdem'].forEach(id=>{
     document.getElementById(id).addEventListener('input', renderCadAlunosTable);
@@ -3053,11 +3101,155 @@
       invalidarFinanceiro();
       await carregarAlunosModulo(true);
       if(editingAlunoId === alunoId && gid('alunoModalOverlay').classList.contains('open')) await renderServicosDoAluno(alunoId);
+      await atualizarFichaAberta();
     } finally {
       salvandoVendaServico = false;
       if(btn) btn.disabled = false;
     }
   });
+
+  // =====================================================================
+  // FICHA DO ALUNO — dados, vendas, parcelas e situação financeira numa tela só
+  // =====================================================================
+  let fichaAlunoId = null;
+
+  // Cálculo puro (testável): resume as parcelas de um aluno.
+  function resumoFinanceiroAluno(parcelas, hoje){
+    hoje = hoje || hojeISO();
+    const venc = p => String(p.data_vencimento || '').slice(0,10);
+    const soma = arr => Math.round(arr.reduce((s, p) => s + Number(p.valor || 0), 0) * 100) / 100;
+    const ps = (parcelas || []).slice().sort((a, b) => venc(a).localeCompare(venc(b)));
+    const recebidas = ps.filter(p => p.status === 'recebido');
+    const abertas = ps.filter(p => p.status !== 'recebido');
+    const atrasadas = abertas.filter(p => venc(p) && venc(p) < hoje);
+    const aVencer = abertas.filter(p => !(venc(p) && venc(p) < hoje));
+    let situacao = 'em-dia';
+    if(!ps.length) situacao = 'sem-lancamentos';
+    else if(atrasadas.length) situacao = 'em-atraso';
+    else if(!abertas.length) situacao = 'quitado';
+    return {
+      parcelas: ps, situacao,
+      total: soma(ps), recebido: soma(recebidas), aVencer: soma(aVencer), atrasado: soma(atrasadas),
+      nParcelas: ps.length, nRecebidas: recebidas.length, nAtrasadas: atrasadas.length,
+      diasAtraso: atrasadas.length ? diasEntre(venc(atrasadas[0]), hoje) : 0,
+      proxima: aVencer.find(p => venc(p)) || null,
+    };
+  }
+
+  function fichaRenderCabecalho(a){
+    const cat = categoriaById(a.categoria);
+    const et = etapaAlunoById(a.stage_id);
+    gid('fichaNome').textContent = a.nome || '—';
+    gid('fichaTags').innerHTML =
+      `<span class="badge" style="background:${cat.cor}">${escapeHtml(cat.id)}</span>` +
+      (ehClienteServico(a) ? '<span class="badge badge-servico">Cliente de serviço</span>' : '') +
+      '<span id="fichaSituacao"></span>';
+    const campo = (rotulo, valor) => `<div><span>${rotulo}</span><b>${valor ? escapeHtml(String(valor)) : '—'}</b></div>`;
+    gid('fichaDados').innerHTML =
+      campo('Telefone / WhatsApp', a.telefone) + campo('CPF', a.cpf) + campo('RENACH', a.renach) + campo('Instrutor', a.instrutor) +
+      `<div><span>Etapa</span><b>${ehClienteServico(a) ? 'Fora da jornada' : (et ? `<span class="etapa-tag"><i style="background:${escapeHtml(et.cor)}"></i>${escapeHtml(et.nome)}</span> · ${daysSince(a.etapa_desde)}` : 'Sem etapa')}</b></div>` +
+      `<div><span>Data de matrícula</span><b>${a.data_matricula ? dataBR(a.data_matricula) : '—'}</b></div>` +
+      `<div><span>Cadastrado em</span><b>${a.criado_em ? dataBR(dataLocalISO(a.criado_em)) : '—'}</b></div>` +
+      (a.motivo_desistencia ? campo('Motivo da desistência', a.motivo_desistencia) : '<div></div>') +
+      (a.observacoes ? `<div class="ficha-obs"><span>Observações</span><b>${escapeHtml(a.observacoes)}</b></div>` : '');
+  }
+
+  function fichaRenderFinanceiro(a, parcelas, vendas, vendasErro){
+    const hoje = hojeISO();
+    const r = resumoFinanceiroAluno(parcelas, hoje);
+    const ROT = {
+      'em-dia': 'Adimplente' + (r.proxima ? ' · próxima parcela em ' + dataBR(String(r.proxima.data_vencimento).slice(0,10)) : ''),
+      'quitado': 'Quitado',
+      'em-atraso': `Em atraso · ${formatMoney(r.atrasado)} em ${r.nAtrasadas} parcela${r.nAtrasadas === 1 ? '' : 's'} · há ${r.diasAtraso} dia${r.diasAtraso === 1 ? '' : 's'}`,
+      'sem-lancamentos': 'Sem venda registrada',
+    };
+    gid('fichaSituacao').outerHTML = `<span id="fichaSituacao" class="ficha-situacao ${r.situacao}">${escapeHtml(ROT[r.situacao])}</span>`;
+
+    const pct = v => r.total > 0 ? (v / r.total * 100) : 0;
+    let html = `
+      <div class="stats-row stats-4">
+        <div class="stat-card"><div class="stat-label">Total contratado</div><div class="stat-value">${formatMoney(r.total)}</div><div class="stat-sub">${r.nParcelas} parcela${r.nParcelas === 1 ? '' : 's'} lançada${r.nParcelas === 1 ? '' : 's'}</div></div>
+        <div class="stat-card win"><div class="stat-label">Recebido</div><div class="stat-value">${formatMoney(r.recebido)}</div><div class="stat-sub">${r.total > 0 ? Math.round(pct(r.recebido)) + '% do total · ' : ''}${r.nRecebidas}/${r.nParcelas} parcelas</div></div>
+        <div class="stat-card"><div class="stat-label">A vencer</div><div class="stat-value">${formatMoney(r.aVencer)}</div><div class="stat-sub">${r.proxima ? 'próxima: ' + dataBR(String(r.proxima.data_vencimento).slice(0,10)) + ' · ' + formatMoney(r.proxima.valor) : 'nada a vencer'}</div></div>
+        <div class="stat-card ${r.atrasado > 0 ? 'lost' : ''}"><div class="stat-label">Em atraso</div><div class="stat-value">${formatMoney(r.atrasado)}</div><div class="stat-sub ${r.atrasado > 0 ? 'down' : ''}">${r.atrasado > 0 ? r.nAtrasadas + ' parcela' + (r.nAtrasadas === 1 ? '' : 's') + ' · há ' + r.diasAtraso + ' dia' + (r.diasAtraso === 1 ? '' : 's') : 'nenhuma parcela em atraso'}</div></div>
+      </div>`;
+    if(r.total > 0){
+      html += `<div class="ficha-barra"><i class="rec" style="width:${pct(r.recebido)}%"></i><i class="atr" style="width:${pct(r.atrasado)}%"></i><i class="abe" style="width:${pct(r.aVencer)}%"></i></div>
+        <div class="ficha-legenda"><span><i style="background:var(--green)"></i>Recebido</span><span><i style="background:var(--red)"></i>Em atraso</span><span><i style="background:var(--yellow)"></i>A vencer</span></div>`;
+    }
+
+    // ---- O que foi vendido ----
+    html += '<div class="section-title">Vendas</div>';
+    const itens = [];
+    const parcMatricula = r.parcelas.filter(p => p.origem === 'matricula');
+    if(Number(a.valor_total_cnh) > 0 || parcMatricula.length){
+      const sit = situacaoParcelas(parcMatricula, hoje);
+      const valor = Number(a.valor_total_cnh) > 0 ? Number(a.valor_total_cnh) : parcMatricula.reduce((s, p) => s + Number(p.valor || 0), 0);
+      itens.push(`<div class="vs-venda"><div><b>CNH ${escapeHtml(a.categoria || '')}</b> · matrícula antiga · ${a.data_matricula ? dataBR(a.data_matricula) : '—'} · ${formatMoney(valor)}
+        <div class="cell-muted">${sit.total ? sit.recebidas + '/' + sit.total + ' parcelas recebidas' : 'sem parcelas lançadas'}</div></div>
+        <span class="status-pill ${sit.pill}">${sit.rotulo}</span></div>`);
+    }
+    (vendas || []).forEach(v => {
+      const ps = r.parcelas.filter(p => p.venda_servico_id === v.id);
+      const cancelada = v.status === 'cancelada';
+      const sit = cancelada ? { rotulo: 'Cancelada', pill: 'inativo', recebidas: 0, total: 0 } : situacaoParcelas(ps, hoje);
+      itens.push(`<div class="vs-venda ${cancelada ? 'cancelada' : ''}"><div><b>${escapeHtml(v.servico_nome)}</b>${v.quantidade > 1 ? ' ×' + v.quantidade : ''} · ${dataBR(dataLocalISO(v.data_venda))} · ${formatMoney(v.valor_total)}
+        <div class="cell-muted" style="text-decoration:none;">${cancelada ? 'Venda cancelada' : (sit.total ? sit.recebidas + '/' + sit.total + ' parcelas recebidas' : 'sem parcelas lançadas')}${v.observacoes ? ' · ' + escapeHtml(v.observacoes) : ''}</div></div>
+        <span class="status-pill ${sit.pill}">${sit.rotulo}</span></div>`);
+    });
+    if(vendasErro) itens.push('<div class="cell-muted">As vendas novas não puderam ser lidas (' + escapeHtml(vendasErro.message) + ').</div>');
+    html += itens.length ? itens.join('') : '<div class="cell-muted">Nenhuma venda registrada para este aluno. Use <b>Registrar venda</b>.</div>';
+
+    // ---- Parcelas, uma a uma ----
+    html += '<div class="section-title">Parcelas</div>';
+    if(!r.parcelas.length){
+      html += '<div class="cell-muted">Nenhum lançamento em Contas a Receber para este aluno.</div>';
+    }else{
+      html += `<div class="table-wrap"><table class="data-table" style="min-width:720px;">
+        <thead><tr><th>Vencimento</th><th>Descrição</th><th>Valor</th><th>Forma</th><th>Recebido em</th><th>Situação</th></tr></thead><tbody>` +
+        r.parcelas.map(p => {
+          const v = String(p.data_vencimento || '').slice(0,10);
+          let pill = 'pendente', rot = 'A vencer';
+          if(p.status === 'recebido'){ pill = 'recebido'; rot = 'Recebido'; }
+          else if(v && v < hoje){ const d = diasEntre(v, hoje); pill = 'atrasado'; rot = 'Atrasada · ' + d + ' dia' + (d === 1 ? '' : 's'); }
+          else if(v === hoje){ rot = 'Vence hoje'; }
+          return `<tr><td class="num">${v ? dataBR(v) : '—'}</td><td>${escapeHtml(p.descricao || '—')}</td><td class="num">${formatMoney(p.valor)}</td>
+            <td>${p.forma_pagamento ? escapeHtml(p.forma_pagamento) : '<span class="cell-muted">—</span>'}</td>
+            <td class="num">${p.data_recebimento ? dataBR(String(p.data_recebimento).slice(0,10)) : '<span class="cell-muted">—</span>'}</td>
+            <td><span class="status-pill ${pill}">${rot}</span></td></tr>`;
+        }).join('') +
+        `</tbody><tfoot><tr><td colspan="2">Total</td><td class="num">${formatMoney(r.total)}</td><td colspan="3"></td></tr></tfoot></table></div>`;
+    }
+    gid('fichaFinanceiro').className = '';
+    gid('fichaFinanceiro').innerHTML = html;
+  }
+
+  async function abrirFichaAluno(id){
+    const a = alunoById(id);
+    if(!a){ showToast('Cadastro não encontrado — atualize a página.'); return; }
+    fichaAlunoId = id;
+    fichaRenderCabecalho(a);
+    gid('fichaFinanceiro').className = 'cell-muted';
+    gid('fichaFinanceiro').textContent = 'Carregando…';
+    gid('fichaAlunoOverlay').classList.add('open');
+    const [rP, rV] = await Promise.all([
+      selecionarTudo('contas_receber', '*', 'data_vencimento', [['aluno_id', id]]),
+      sb.from('vendas_servico').select('*').eq('aluno_id', id).order('data_venda', { ascending: false }),
+    ]);
+    if(fichaAlunoId !== id) return;   // trocou de aluno enquanto carregava
+    if(rP.error){
+      gid('fichaFinanceiro').textContent = 'Financeiro indisponível para o seu perfil ou no momento (' + rP.error.message + ').';
+      return;
+    }
+    fichaRenderFinanceiro(a, rP.data, rV.error ? [] : (rV.data || []), rV.error);
+  }
+  // Recarrega a ficha se ela estiver aberta (depois de uma venda ou de editar o cadastro).
+  async function atualizarFichaAberta(){
+    if(fichaAlunoId && gid('fichaAlunoOverlay').classList.contains('open')) await abrirFichaAluno(fichaAlunoId);
+  }
+  gid('btnFichaFechar').addEventListener('click', () => { gid('fichaAlunoOverlay').classList.remove('open'); fichaAlunoId = null; });
+  gid('btnFichaEditar').addEventListener('click', () => { if(fichaAlunoId) openAlunoModal(fichaAlunoId); });
+  gid('btnFichaVenda').addEventListener('click', () => { if(fichaAlunoId) abrirVendaServico(fichaAlunoId); });
 
   // ---------- Serviços contratados (dentro do cadastro do aluno) ----------
   function situacaoParcelas(ps, hoje){
@@ -4264,7 +4456,7 @@
     const cat = categoriaById(aluno.categoria);
     return `<div class="lead-card" draggable="true" data-id="${aluno.id}">
       <div class="lc-top">
-        <div class="lc-name">${escapeHtml(aluno.nome)}</div>
+        <div class="lc-name"><button type="button" class="ficha-link" data-action="ficha-aluno" data-id="${aluno.id}" title="Abrir a ficha do aluno">${escapeHtml(aluno.nome)}</button></div>
         <div class="lc-actions">
           <button class="icon-btn" data-action="edit-aluno" data-id="${aluno.id}" title="Editar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
@@ -4335,6 +4527,9 @@
         const id = dragging ? dragging.dataset.id : null;
         if(id && zone.dataset.stage) moveAluno(id, zone.dataset.stage);   // a coluna "Sem etapa" não aceita soltar
       });
+    });
+    boardEl.querySelectorAll('[data-action="ficha-aluno"]').forEach(btn=>{
+      btn.addEventListener('click', ()=> abrirFichaAluno(btn.dataset.id));
     });
     boardEl.querySelectorAll('[data-action="edit-aluno"]').forEach(btn=>{
       btn.addEventListener('click', ()=> openAlunoModal(btn.dataset.id));
@@ -4475,6 +4670,7 @@
     document.getElementById('alunoModalOverlay').classList.remove('open');
     showToast(eraNovo ? (clienteServico ? 'Cadastro adicionado.' : 'Aluno cadastrado. Agora registre a venda.') : 'Aluno atualizado.');
     await carregarAlunosModulo(true);
+    await atualizarFichaAberta();
     if(eraNovo && !clienteServico) await abrirVendaServico(registro.id);   // cadastro novo cai direto na venda
   });
   document.getElementById('btnDeleteAluno').addEventListener('click', async ()=>{
