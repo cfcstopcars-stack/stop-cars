@@ -538,7 +538,7 @@
           <input type="text" id="alunoSearchInput" placeholder="Buscar por nome ou telefone...">
           <select id="alunoFilterCategoria"><option value="todos">Todas as categorias</option></select>
           <button class="btn btn-yellow" id="btnNovoAluno">+ Novo Aluno</button>
-          <button class="btn btn-ghost" id="btnVendaServico">+ Venda de serviço</button>
+          <button class="btn btn-ghost" id="btnVendaServico">+ Nova venda</button>
           <div class="toolbar-right">
             <button class="btn btn-ghost" id="btnAlunoStages">Gerenciar etapas</button>
           </div>
@@ -650,10 +650,14 @@
         </div>
 
         <div class="subview" id="subview-cad-servicos">
-          <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Serviços vendidos além da matrícula (aulas extras, reciclagem, adição de categoria...). Eles aparecem na tela <b>Venda de serviço</b> (em Alunos) e no Dashboard de Vendas. Um serviço <b>inativo</b> deixa de ser oferecido em novas vendas, mas o histórico das vendas já feitas continua.</div>
+          <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Tudo o que a autoescola vende: pacotes de CNH e serviços avulsos (aulas extras, reciclagem, taxa de reprova...). Eles aparecem na tela <b>+ Nova venda</b> (em Alunos) e no Dashboard de Vendas. Um serviço <b>inativo</b> deixa de ser oferecido em novas vendas, mas o histórico das vendas já feitas continua.</div>
           <div class="filter-bar" id="servicosNovoBar">
             <input type="text" id="novoServicoNome" placeholder="Nome do serviço (ex: Aula de baliza)" style="min-width:260px;">
             <input type="number" id="novoServicoValor" min="0" step="0.01" placeholder="Valor sugerido (opcional)" style="max-width:200px;">
+            <select id="novoServicoTipo" style="max-width:190px;" title="Pacote de CNH conta como CNH vendida no relatório">
+              <option value="servico">Serviço avulso</option>
+              <option value="cnh">Pacote de CNH</option>
+            </select>
             <button class="btn btn-yellow" id="btnAddServico">+ Adicionar serviço</button>
           </div>
           <div class="aviso-dados" id="servicosAviso" style="display:none;"></div>
@@ -896,10 +900,10 @@
             <button class="btn btn-ghost" id="vendasMesAtual">Este mês</button>
             <div class="seg-control" id="vendasSeg">
               <button data-seg="tudo" class="active">Tudo</button>
-              <button data-seg="cnh">CNH</button>
-              <button data-seg="servicos">Serviços</button>
+              <button data-seg="servicos">Vendas</button>
+              <button data-seg="cnh">Matrículas antigas</button>
             </div>
-            <button class="btn btn-ghost" id="btnVendasCsv" style="margin-left:auto;">Exportar CNH (CSV)</button>
+            <button class="btn btn-ghost" id="btnVendasCsv" style="margin-left:auto;">Exportar matrículas antigas (CSV)</button>
           </div>
 
           <div id="vendasResumoBox">
@@ -908,7 +912,7 @@
           </div>
 
           <div id="vendasSecCnh">
-            <div class="section-title">CNH</div>
+            <div class="section-title">Matrículas antigas — CNH vendida antes da venda por pacote</div>
             <div class="stats-row stats-6" id="vendasStatsRow"></div>
             <div class="aviso-dados" id="vendasAviso" style="display:none;"></div>
             <div class="filter-summary" id="vendasPorCategoria"></div>
@@ -920,7 +924,8 @@
               </table>
             </div>
             <div class="nota-rodape">
-              <b>Como ler:</b> cada aluno matriculado no mês conta como uma CNH vendida. O <b>valor</b> é o valor total informado na matrícula.
+              <b>Como ler:</b> esta seção mostra só as matrículas feitas no modelo antigo (valor gravado no cadastro do aluno). As vendas novas — pacotes de CNH e serviços — aparecem em <b>Vendas</b>.
+              Cada aluno matriculado no mês conta como uma CNH vendida. O <b>valor</b> é o valor total informado na matrícula.
               O <b>prazo médio</b> é o número de dias entre a matrícula e cada vencimento, ponderado pelo valor de cada parcela
               ("À vista" = tudo vence na data da matrícula). O <b>ticket médio</b> considera só as vendas com valor informado.
               As parcelas vêm dos lançamentos criados na matrícula.
@@ -928,7 +933,7 @@
           </div>
 
           <div id="vendasSecServ">
-            <div class="section-title">Outros serviços</div>
+            <div class="section-title">Vendas — pacotes de CNH e serviços</div>
             <div class="aviso-dados" id="vendasServAviso" style="display:none;"></div>
             <div class="stats-row stats-4" id="vendasServStats"></div>
             <div class="filter-summary" id="vendasPorServico"></div>
@@ -939,9 +944,9 @@
                 <tfoot id="tfootVendasServ"></tfoot>
               </table>
             </div>
-            <div style="margin-top:10px;"><button class="btn btn-ghost" id="btnVendasServCsv">Exportar serviços (CSV)</button></div>
+            <div style="margin-top:10px;"><button class="btn btn-ghost" id="btnVendasServCsv">Exportar vendas (CSV)</button></div>
             <div class="nota-rodape">
-              <b>Como ler:</b> cada venda de serviço registrada em Alunos → <b>Venda de serviço</b> no mês conta como uma venda (vendas canceladas não entram).
+              <b>Como ler:</b> cada venda registrada em Alunos → <b>+ Nova venda</b> no mês conta como uma venda, seja pacote de CNH ou serviço (vendas canceladas não entram).
               O prazo médio é contado a partir da data da venda, e o ticket médio é o valor médio por venda.
             </div>
           </div>
@@ -960,7 +965,7 @@
         <div class="subview" id="subview-dash-vendas">
           <div class="table-wrap">
             <table class="data-table">
-              <thead><tr><th>Mês</th><th>Categoria</th><th>Matrículas</th><th>Valor total</th></tr></thead>
+              <thead><tr><th>Mês</th><th>Item</th><th>Vendas</th><th>Valor total</th></tr></thead>
               <tbody id="tbodyDashVendas"><tr><td colspan="4" class="cell-muted">Carregando…</td></tr></tbody>
             </table>
           </div>
@@ -1427,8 +1432,8 @@
         </div>
       </div>
       <div id="afBlocoCnh">
-        <div class="form-row">
-          <label>Valor total da venda (CNH)</label>
+        <div class="form-row" id="afValorTotalCnhBlock" style="display:none;">
+          <label>Valor da CNH (matrícula antiga)</label>
           <input type="number" id="afValorTotalCnh" min="0" step="0.01" placeholder="opcional">
         </div>
         <div class="form-row">
@@ -1445,9 +1450,9 @@
         <textarea id="afObs" placeholder="Notas sobre o andamento do aluno..."></textarea>
       </div>
       <div id="afServicosBox" style="display:none;">
-        <div class="section-title" style="margin-top:18px;">Serviços contratados</div>
+        <div class="section-title" style="margin-top:18px;">Vendas deste aluno</div>
         <div id="afServicosLista" class="cell-muted">Carregando…</div>
-        <button type="button" class="btn btn-ghost" id="btnAfNovaVenda" style="margin-top:8px;">+ Nova venda de serviço</button>
+        <button type="button" class="btn btn-ghost" id="btnAfNovaVenda" style="margin-top:8px;">+ Nova venda</button>
       </div>
       <div class="modal-actions">
         <div class="left-actions">
@@ -1656,7 +1661,7 @@
 <!-- Venda de serviço modal -->
 <div class="modal-overlay" id="vendaServicoModalOverlay">
   <div class="modal modal-wide">
-    <h2>Venda de serviço</h2>
+    <h2>Nova venda</h2>
     <div style="font-size:12.5px;color:var(--muted);margin:-8px 0 14px;">Registra a venda no cadastro do aluno e gera os lançamentos em Contas a Receber.</div>
     <form id="vendaServicoForm" novalidate>
       <div class="form-row">
@@ -2747,7 +2752,7 @@
     if(!podeEditar) aviso.textContent = 'Somente o administrador altera o catálogo de serviços.';
     if(!servicos.length){ tbody.innerHTML = '<tr><td colspan="4" class="cell-muted">Nenhum serviço cadastrado.</td></tr>'; return; }
     tbody.innerHTML = servicos.map(s => `<tr class="servico-linha" data-id="${escapeHtml(s.id)}">
-      <td><input type="text" data-field="nome" value="${escapeHtml(s.nome)}" ${podeEditar ? '' : 'disabled'}></td>
+      <td><input type="text" data-field="nome" value="${escapeHtml(s.nome)}" ${podeEditar ? '' : 'disabled'}>${s.tipo === 'cnh' ? '<div class="cell-muted" style="font-size:11.5px;">Pacote de CNH</div>' : ''}</td>
       <td style="max-width:150px;"><input type="number" min="0" step="0.01" data-field="valor_padrao" value="${s.valor_padrao ?? ''}" placeholder="—" ${podeEditar ? '' : 'disabled'}></td>
       <td><label class="checkbox-row"><input type="checkbox" data-field="ativo" ${s.ativo ? 'checked' : ''} ${podeEditar ? '' : 'disabled'}> ${s.ativo ? 'Ativo' : 'Inativo'}</label></td>
       <td class="cell-actions">${podeEditar ? '<button class="icon-btn" data-act="del-servico" title="Excluir serviço">🗑</button>' : ''}</td>
@@ -2795,7 +2800,7 @@
     if(nomeServicoJaExiste(nome)){ showToast('Já existe um serviço com esse nome.'); return; }
     const valor = valorTxt === '' ? null : parseFloat(valorTxt);
     if(valor !== null && (isNaN(valor) || valor < 0)){ showToast('Informe um valor válido (ou deixe vazio).'); return; }
-    const { error } = await sb.from('servicos').insert({ id: uid('svc'), nome, valor_padrao: valor, ativo: true, criado_em: new Date().toISOString() });
+    const { error } = await sb.from('servicos').insert({ id: uid('svc'), nome, valor_padrao: valor, ativo: true, tipo: gid('novoServicoTipo').value === 'cnh' ? 'cnh' : 'servico', criado_em: new Date().toISOString() });
     if(error){ showToast('Erro ao adicionar: ' + error.message); return; }
     gid('novoServicoNome').value = ''; gid('novoServicoValor').value = '';
     showToast('Serviço adicionado.');
@@ -2830,6 +2835,7 @@
     if(atual) gid('vsAluno').value = atual;
   }
   function vsServicoSelecionado(){ return servicos.find(s => s.id === gid('vsServico').value) || null; }
+  function ehPacoteCnh(s){ return !!s && s.tipo === 'cnh'; }
   function vsRecalcularTotal(){
     const qtd = Math.max(1, parseInt(gid('vsQtd').value) || 1);
     const unit = parseFloat(gid('vsValorUnit').value);
@@ -2908,10 +2914,16 @@
     ['vsNovoNome','vsNovoTelefone','vsNovoCpf','vsObs'].forEach(id => { gid(id).value = ''; });
     ['errVsNovoNome','errVsNovoTelefone','errVsServico','errVsValorTotal'].forEach(id => gid(id).classList.remove('show'));
     gid('vsNovoCategoria').innerHTML = CATEGORIAS.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-    gid('vsServico').innerHTML = ativos.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.nome)}</option>`).join('');
+    // Pacotes de CNH primeiro, depois os serviços avulsos.
+    const opcoes = lista => lista.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.nome)}</option>`).join('');
+    const pacotes = ativos.filter(ehPacoteCnh), avulsos = ativos.filter(s => !ehPacoteCnh(s));
+    gid('vsServico').innerHTML =
+      (pacotes.length ? `<optgroup label="Pacotes de CNH">${opcoes(pacotes)}</optgroup>` : '') +
+      (avulsos.length ? `<optgroup label="Serviços">${opcoes(avulsos)}</optgroup>` : '');
+    const primeiro = vsServicoSelecionado() || ativos[0];
     gid('vsQtd').value = 1;
-    gid('vsValorUnit').value = ativos[0].valor_padrao ?? '';
-    gid('vsValorTotal').value = ativos[0].valor_padrao ?? '';
+    gid('vsValorUnit').value = primeiro.valor_padrao ?? '';
+    gid('vsValorTotal').value = primeiro.valor_padrao ?? '';
     gid('vsParcelas').value = 1;
     gid('vsPrimeiroVencimento').value = hojeISO();
     gid('vsForma').value = 'Pix';
@@ -2968,6 +2980,11 @@
     const servico = vsServicoSelecionado();
     if(!servico){ gid('errVsServico').classList.add('show'); showToast('Selecione o serviço.'); return; }
     gid('errVsServico').classList.remove('show');
+    // Pacote de CNH só para aluno já cadastrado (cadastro completo, com CPF e etapa).
+    if(ehPacoteCnh(servico) && novo){ showToast('Para vender um pacote de CNH, cadastre o aluno primeiro em "+ Novo Aluno".'); return; }
+    if(ehPacoteCnh(servico) && ehClienteServico(alunoById(alunoId))){
+      showToast('Esta pessoa está como "Cliente de serviços". Mude o tipo do cadastro para "Aluno da CNH" antes de vender um pacote.'); return;
+    }
     const qtd = parseInt(gid('vsQtd').value);
     if(!qtd || qtd < 1){ showToast('A quantidade precisa ser de pelo menos 1.'); return; }
     const valorTotal = parseFloat(gid('vsValorTotal').value);
@@ -3005,6 +3022,7 @@
       const vendaId = uid('vs');
       const { error: erroVenda } = await sb.from('vendas_servico').insert({
         id: vendaId, aluno_id: alunoId, servico_id: servico.id, servico_nome: servico.nome,
+        servico_tipo: ehPacoteCnh(servico) ? 'cnh' : 'servico',
         quantidade: qtd, valor_total: valorTotal, data_venda: hojeISO(), status: 'ativa',
         observacoes: gid('vsObs').value.trim() || null, criado_em: now, atualizado_em: now,
       });
@@ -3060,7 +3078,7 @@
     const { data: vendas, error } = await sb.from('vendas_servico').select('*').eq('aluno_id', alunoId).order('data_venda', { ascending: false });
     if(editingAlunoId !== alunoId) return;   // trocou de aluno enquanto carregava
     if(error){ lista.innerHTML = 'Serviços indisponíveis agora (' + escapeHtml(error.message) + ').'; return; }
-    if(!vendas || !vendas.length){ lista.innerHTML = 'Nenhum serviço contratado por este aluno.'; return; }
+    if(!vendas || !vendas.length){ lista.innerHTML = 'Nenhuma venda registrada para este aluno.'; return; }
     const { data: parcelas, error: erroParc } = await sb.from('contas_receber').select('id, venda_servico_id, valor, status, data_vencimento').in('venda_servico_id', vendas.map(v => v.id));
     if(editingAlunoId !== alunoId) return;
     if(erroParc){ lista.innerHTML = 'Não foi possível ler as parcelas (' + escapeHtml(erroParc.message) + ').'; return; }
@@ -3617,15 +3635,12 @@
   function leadCardHTML(lead){
     const cat = categoriaById(lead.categoria);
     const stage = stageById(lead.stage_id);
-    const jaConvertido = alunos.some(a=>a.origem_lead_id === lead.id);
-    const podeConverter = stage && stage.tipo === 'ganho' && !jaConvertido;
+    // Funil é só ferramenta de vendas: não cria aluno. Fechou a CNH → o comercial
+    // cadastra o aluno em Alunos e registra a venda por lá.
     return `<div class="lead-card" draggable="true" data-id="${lead.id}">
       <div class="lc-top">
         <div class="lc-name">${escapeHtml(lead.nome)}</div>
         <div class="lc-actions">
-          ${podeConverter ? `<button class="icon-btn" data-action="convert-aluno" data-id="${lead.id}" title="Criar cadastro de aluno">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
-          </button>` : ''}
           <button class="icon-btn" data-action="edit" data-id="${lead.id}" title="Editar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
           </button>
@@ -3634,7 +3649,6 @@
       <div class="lc-badges">
         <span class="badge" style="background:${cat.cor}">${cat.id}</span>
         <span class="badge outline">${origemById(lead.origem).nome}</span>
-        ${jaConvertido ? '<span class="badge outline">🎓 Virou aluno</span>' : ''}
       </div>
       ${lead.valor ? `<div class="lc-value">${formatMoney(lead.valor)}</div>` : ''}
       <div class="lc-meta">
@@ -3686,9 +3700,6 @@
     });
     boardEl.querySelectorAll('[data-action="edit"]').forEach(btn=>{
       btn.addEventListener('click', ()=> openLeadModal(btn.dataset.id));
-    });
-    boardEl.querySelectorAll('[data-action="convert-aluno"]').forEach(btn=>{
-      btn.addEventListener('click', ()=> convertLeadToAluno(btn.dataset.id));
     });
     boardEl.querySelectorAll('.lc-move-select').forEach(sel=>{
       sel.addEventListener('change', ()=> moveLead(sel.dataset.id, sel.value));
@@ -3989,6 +4000,19 @@
   }
 
   let salvandoMatricula = false;
+  // Trava de duplicidade: procura um cadastro já existente com o mesmo CPF (compara só os
+  // dígitos, porque o CPF é digitado com e sem pontuação). Consulta o banco para enxergar
+  // também o que outro usuário acabou de cadastrar; se a consulta falhar, usa a lista em memória.
+  // Vale só para cadastros NOVOS — não mexe nos que já existem.
+  async function buscarAlunoMesmoCpf(cpf, ignorarId){
+    const digitos = String(cpf || '').replace(/\D/g, '');
+    if(digitos.length !== 11) return null;
+    let lista = alunos || [];
+    const { data, error } = await sb.from('alunos').select('id,nome,cpf').not('cpf', 'is', null);
+    if(!error && data) lista = data;
+    return lista.find(a => a.id !== ignorarId && String(a.cpf || '').replace(/\D/g, '') === digitos) || null;
+  }
+
   document.getElementById('matriculaForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     if(salvandoMatricula) return;
@@ -4009,6 +4033,12 @@
     const btnMatricular = document.querySelector('#matriculaForm button[type="submit"]');
     if(btnMatricular) btnMatricular.disabled = true;
     try{
+      const duplicadoMat = await buscarAlunoMesmoCpf(document.getElementById('mfCpf').value, null);
+      if(duplicadoMat){
+        showToast('Já existe um cadastro com este CPF: "' + duplicadoMat.nome + '". Matrícula não criada — confira em Alunos antes de continuar.');
+        return;
+      }
+
       // O aluno nasce na PRIMEIRA etapa da jornada. (Antes não enviava etapa e o aluno
       // ficava "sem etapa", invisível no quadro de Alunos.) A lista de etapas só é
       // carregada no módulo Alunos, então busca aqui se ainda não estiver na memória.
@@ -4115,10 +4145,31 @@
     alunos = rAlunos.data || [];
     etapasAluno = rEtapas.data || [];
     alunosCarregado = true;
+    await carregarAlunosComVenda();
     fillFiltroCategoriaAluno();
     refreshAlunosModulo();
     fillFiltrosCadAlunos();
     renderCadAlunosTable();
+  }
+
+  // Quem já tem venda: qualquer venda ativa OU qualquer lançamento em Contas a Receber (cobre as
+  // matrículas antigas). Se a consulta falhar (ex.: perfil sem acesso ao financeiro), fica null e
+  // o aviso "Sem venda" simplesmente não aparece — nunca acusa ninguém por engano.
+  let alunosComVenda = null;
+  async function carregarAlunosComVenda(){
+    const [rV, rP] = await Promise.all([
+      selecionarTudo('vendas_servico', 'id, aluno_id, status'),
+      selecionarTudo('contas_receber', 'id, aluno_id'),
+    ]);
+    if(rV.error || rP.error){ alunosComVenda = null; return; }
+    alunosComVenda = new Set();
+    rV.data.forEach(v => { if(v.aluno_id && v.status !== 'cancelada') alunosComVenda.add(v.aluno_id); });
+    rP.data.forEach(p => { if(p.aluno_id) alunosComVenda.add(p.aluno_id); });
+  }
+  function alunoSemVenda(a){
+    if(!alunosComVenda || !a || ehClienteServico(a)) return false;
+    if(Number(a.valor_total_cnh) > 0) return false;   // matrícula antiga com valor gravado
+    return !alunosComVenda.has(a.id);
   }
 
   function etapaAlunoById(id){ return etapasAluno.find(s=>s.id===id); }
@@ -4226,6 +4277,7 @@
         <span class="badge" style="background:${cat.cor}">${cat.id}</span>
         ${aluno.renach ? `<span class="badge outline">RENACH ${escapeHtml(aluno.renach)}</span>` : ''}
         ${aluno.instrutor ? `<span class="badge outline">${escapeHtml(aluno.instrutor)}</span>` : ''}
+        ${alunoSemVenda(aluno) ? '<span class="badge" style="background:#b8272c" title="Nenhuma venda registrada para este aluno. Abra o cadastro e use + Nova venda.">Sem venda</span>' : ''}
       </div>
       <div class="lc-meta">
         <span>${escapeHtml(aluno.telefone)} · ${daysSince(aluno.etapa_desde)} na etapa</span>
@@ -4352,6 +4404,8 @@
     document.getElementById('afCpf').value = aluno?.cpf || '';
     document.getElementById('afInstrutor').value = aluno?.instrutor || '';
     document.getElementById('afValorTotalCnh').value = aluno?.valor_total_cnh ?? '';
+    // O valor da CNH agora vem da VENDA. O campo só aparece em matrículas antigas que já têm valor gravado.
+    document.getElementById('afValorTotalCnhBlock').style.display = (aluno && Number(aluno.valor_total_cnh) > 0) ? '' : 'none';
     document.getElementById('afDataMatricula').value = aluno?.data_matricula || hojeISO();
     document.getElementById('afEtapa').value = aluno?.stage_id || sortedEtapasAluno()[0]?.id || '';
     document.getElementById('afObs').value = aluno?.observacoes || '';
@@ -4389,6 +4443,14 @@
     }
     const stageMudou = existente ? existente.stage_id !== novaEtapa : true;
 
+    if(!editingAlunoId){
+      const duplicado = await buscarAlunoMesmoCpf(document.getElementById('afCpf').value, null);
+      if(duplicado){
+        showToast('Já existe um cadastro com este CPF: "' + duplicado.nome + '". Não foi criado um novo — abra o cadastro existente para editar.');
+        return;
+      }
+    }
+
     const registro = {
       id: editingAlunoId || uid('aluno'),
       nome, telefone,
@@ -4411,9 +4473,11 @@
 
     const { error } = await sb.from('alunos').upsert(registro);
     if(error){ showToast('Erro ao salvar aluno: ' + error.message); return; }
+    const eraNovo = !editingAlunoId;
     document.getElementById('alunoModalOverlay').classList.remove('open');
-    showToast(editingAlunoId ? 'Aluno atualizado.' : 'Aluno adicionado.');
+    showToast(eraNovo ? (clienteServico ? 'Cadastro adicionado.' : 'Aluno cadastrado. Agora registre a venda.') : 'Aluno atualizado.');
     await carregarAlunosModulo(true);
+    if(eraNovo && !clienteServico) await abrirVendaServico(registro.id);   // cadastro novo cai direto na venda
   });
   document.getElementById('btnDeleteAluno').addEventListener('click', async ()=>{
     if(!editingAlunoId) return;
@@ -4966,11 +5030,45 @@
     return `${m}/${y}`;
   }
 
+  // Relatório de Vendas (mês × item). Antes vinha da função relatorio_vendas do banco, que conta
+  // todo aluno com data de matrícula. Agora soma: matrículas antigas (por categoria) + vendas novas (por item).
+  function montarRelatorioVendas(alunosLista, parcelasMatricula, vendas){
+    const comParcela = new Map();
+    (parcelasMatricula || []).forEach(p => { if(p.aluno_id) comParcela.set(p.aluno_id, (comParcela.get(p.aluno_id) || 0) + Number(p.valor || 0)); });
+    const grupos = new Map();
+    const somar = (mes, item, valor) => {
+      const k = mes + '|' + item;
+      if(!grupos.has(k)) grupos.set(k, { mes: mes + '-01', categoria: item, matriculas: 0, valor_total: 0 });
+      const g = grupos.get(k); g.matriculas++; g.valor_total += valor;
+    };
+    (alunosLista || []).forEach(a => {
+      if(!a.data_matricula) return;
+      const valorInformado = Number(a.valor_total_cnh) > 0 ? Number(a.valor_total_cnh) : 0;
+      if(!valorInformado && !comParcela.has(a.id)) return;                 // aluno do modelo novo: a venda está em vendas_servico
+      somar(dataLocalISO(a.data_matricula).slice(0,7), 'CNH ' + (a.categoria || '—') + ' (matrícula antiga)', valorInformado || comParcela.get(a.id) || 0);
+    });
+    (vendas || []).forEach(v => {
+      if(v.status === 'cancelada' || !v.data_venda) return;
+      somar(dataLocalISO(v.data_venda).slice(0,7), v.servico_nome || '—', Number(v.valor_total) || 0);
+    });
+    return [...grupos.values()];
+  }
+  async function relatorioVendasLocal(){
+    const [rA, rP, rV] = await Promise.all([
+      selecionarTudo('alunos', 'id, categoria, valor_total_cnh, data_matricula'),
+      selecionarTudo('contas_receber', 'id, aluno_id, valor', 'id', [['origem', 'matricula']]),
+      selecionarTudo('vendas_servico', 'id, servico_nome, valor_total, data_venda, status'),
+    ]);
+    if(rA.error || rP.error) return { data: null, error: rA.error || rP.error };
+    // Se a tabela de vendas ainda não existe, mostra só as matrículas antigas.
+    return { data: montarRelatorioVendas(rA.data, rP.data, rV.error ? [] : rV.data), error: null };
+  }
+
   async function carregarDashboard(forcar){
     if(dashboardCarregado && !forcar) return;
     const [rFin, rVendas, rDre, rFluxo] = await Promise.all([
       sb.rpc('dashboard_financeiro'),
-      sb.rpc('relatorio_vendas'),
+      relatorioVendasLocal(),
       sb.rpc('relatorio_dre'),
       sb.rpc('relatorio_fluxo_caixa'),
     ]);
@@ -4987,7 +5085,7 @@
     if(rVendas.error){
       document.getElementById('tbodyDashVendas').innerHTML = `<tr><td colspan="4" class="cell-muted">${escapeHtml(rVendas.error.message)}</td></tr>`;
     }else{
-      const linhas = (rVendas.data||[]).sort((a,b)=> (b.mes||'').localeCompare(a.mes||''));
+      const linhas = (rVendas.data||[]).sort((a,b)=> (b.mes||'').localeCompare(a.mes||'') || String(a.categoria).localeCompare(String(b.categoria), 'pt-BR'));
       document.getElementById('tbodyDashVendas').innerHTML = linhas.length ? linhas.map(l=>`
         <tr><td>${formatMesRPC(l.mes)}</td><td>${escapeHtml(l.categoria)}</td><td>${l.matriculas}</td><td>${formatMoney(l.valor_total)}</td></tr>
       `).join('') : '<tr><td colspan="4" class="cell-muted">Sem dados ainda.</td></tr>';
@@ -5041,6 +5139,9 @@
 
     const linhas = (alunosLista || [])
       .filter(a => a.data_matricula && dataLocalISO(a.data_matricula).slice(0,7) === mes)
+      // Só matrículas do modelo antigo (valor gravado no aluno ou parcelas de matrícula).
+      // Aluno cadastrado no modelo novo não é venda: a venda dele está em vendas_servico.
+      .filter(a => Number(a.valor_total_cnh) > 0 || (porAluno.get(a.id) || []).length > 0)
       .map(a=>{
         const dataMat = dataLocalISO(a.data_matricula);
         const ps = (porAluno.get(a.id) || []).slice().sort((x,y)=> String(x.data_vencimento).localeCompare(String(y.data_vencimento)));
@@ -5133,6 +5234,7 @@
         else if(atrasado > 0) situacao = 'atrasada';
         return {
           id: v.id, aluno_id: v.aluno_id, cliente: nomes.get(v.aluno_id) || '—', servico: v.servico_nome,
+          tipo: v.servico_tipo === 'cnh' ? 'cnh' : 'servico',
           quantidade: Number(v.quantidade) || 1, data_venda: dataVenda, valor,
           parcelas: ps.length, recebidas: ps.length - abertas.length,
           formas: [...new Set(ps.map(p => p.forma_pagamento).filter(Boolean))],
@@ -5169,6 +5271,8 @@
         aReceber: linhas.reduce((s, l) => s + l.aReceber, 0),
         atrasado: linhas.reduce((s, l) => s + l.atrasado, 0),
         semParcelas: semParcelas.length, valorSemParcelas: semParcelas.reduce((s, l) => s + l.valor, 0),
+        cnhVendas: linhas.filter(l => l.tipo === 'cnh').length,
+        cnhValor: linhas.filter(l => l.tipo === 'cnh').reduce((s, l) => s + l.valor, 0),
         porServico,
       },
     };
@@ -5185,7 +5289,7 @@
   function renderVendasServicos(mes, cnhAtual, cnhAnterior){
     aplicarSegVendas();
     const indisponivel = !!vendasDados.servicosErro;
-    const VAZIO = { linhas: [], resumo: { vendas: 0, unidades: 0, valorTotal: 0, ticketMedio: null, prazoMedio: null, recebido: 0, aReceber: 0, atrasado: 0, semParcelas: 0, valorSemParcelas: 0, porServico: [] } };
+    const VAZIO = { linhas: [], resumo: { vendas: 0, unidades: 0, valorTotal: 0, ticketMedio: null, prazoMedio: null, recebido: 0, aReceber: 0, atrasado: 0, semParcelas: 0, valorSemParcelas: 0, cnhVendas: 0, cnhValor: 0, porServico: [] } };
     const cur = indisponivel ? VAZIO : calcularVendasServico(vendasDados.vendasServico, vendasDados.parcelasServico, vendasDados.alunos, mes);
     const ant = indisponivel ? VAZIO : calcularVendasServico(vendasDados.vendasServico, vendasDados.parcelasServico, vendasDados.alunos, somaMes(mes, -1));
     vendasServUltimo = { mes, calc: cur };
@@ -5199,8 +5303,11 @@
       const d = atual - anterior;
       return `<div class="stat-sub ${d > 0 ? 'up' : (d < 0 ? 'down' : '')}">mês anterior: ${fmt(anterior)} (${d > 0 ? '+' : ''}${fmt(d)})</div>`;
     };
-    const quebraN = indisponivel ? `${rc.vendas} CNH · serviços indisponíveis` : `${rc.vendas} CNH + ${rs.vendas} serviço${rs.vendas === 1 ? '' : 's'}`;
-    const quebraV = indisponivel ? 'só CNH (serviços indisponíveis)' : `CNH ${formatMoney(rc.valorTotal)} + serviços ${formatMoney(rs.valorTotal)}`;
+    // CNH = matrículas antigas + pacotes de CNH vendidos no modelo novo; o resto são serviços avulsos.
+    const nCnh = rc.vendas + rs.cnhVendas, nServ = rs.vendas - rs.cnhVendas;
+    const vCnh = rc.valorTotal + rs.cnhValor, vServ = rs.valorTotal - rs.cnhValor;
+    const quebraN = indisponivel ? `${rc.vendas} CNH · vendas novas indisponíveis` : `${nCnh} CNH + ${nServ} serviço${nServ === 1 ? '' : 's'}`;
+    const quebraV = indisponivel ? 'só matrículas antigas (vendas novas indisponíveis)' : `CNH ${formatMoney(vCnh)} + serviços ${formatMoney(vServ)}`;
     gid('vendasResumoRow').innerHTML = `
       <div class="stat-card"><div class="stat-label">Vendas no mês</div><div class="stat-value">${nTotal}</div><div class="stat-sub">${quebraN}</div>${delta(nTotal, nAnt, x => String(x))}</div>
       <div class="stat-card win"><div class="stat-label">Valor vendido</div><div class="stat-value">${formatMoney(vTotal)}</div><div class="stat-sub">${quebraV}</div>${delta(vTotal, vAnt, formatMoney)}</div>
@@ -5222,14 +5329,14 @@
       avisoEl.style.display = 'none';
     }
     gid('vendasServStats').innerHTML = `
-      <div class="stat-card"><div class="stat-label">Serviços vendidos</div><div class="stat-value">${rs.vendas}</div><div class="stat-sub">${rs.unidades} unidade${rs.unidades === 1 ? '' : 's'} no total</div>${delta(rs.vendas, as.vendas, x => String(x))}</div>
-      <div class="stat-card win"><div class="stat-label">Valor em serviços</div><div class="stat-value">${formatMoney(rs.valorTotal)}</div>${delta(rs.valorTotal, as.valorTotal, formatMoney)}</div>
+      <div class="stat-card"><div class="stat-label">Vendas registradas</div><div class="stat-value">${rs.vendas}</div><div class="stat-sub">${rs.unidades} unidade${rs.unidades === 1 ? '' : 's'} no total</div>${delta(rs.vendas, as.vendas, x => String(x))}</div>
+      <div class="stat-card win"><div class="stat-label">Valor vendido</div><div class="stat-value">${formatMoney(rs.valorTotal)}</div>${delta(rs.valorTotal, as.valorTotal, formatMoney)}</div>
       <div class="stat-card"><div class="stat-label">Ticket médio</div><div class="stat-value">${rs.ticketMedio === null ? '—' : formatMoney(rs.ticketMedio)}</div><div class="stat-sub">valor médio por venda</div></div>
       <div class="stat-card rate"><div class="stat-label">Prazo médio de recebimento</div><div class="stat-value">${formatPrazo(rs.prazoMedio)}</div><div class="stat-sub">da venda até cada vencimento</div></div>`;
     gid('vendasPorServico').innerHTML = rs.porServico.map(g =>
       `<div class="fs-chip">${escapeHtml(g.nome)}<b>${g.vendas} venda${g.vendas === 1 ? '' : 's'} · ${g.unidades} un. · ${formatMoney(g.valor)}</b></div>`).join('');
     if(!cur.linhas.length){
-      tbody.innerHTML = '<tr><td colspan="10" class="cell-muted">Nenhuma venda de serviço neste mês.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="cell-muted">Nenhuma venda registrada neste mês.</td></tr>';
       tfoot.innerHTML = '';
       return;
     }
@@ -5273,7 +5380,7 @@
       selecionarTudo('alunos', 'id, nome, categoria, valor_total_cnh, data_matricula, stage_id'),
       selecionarTudo('contas_receber', 'id, aluno_id, valor, data_vencimento, status, forma_pagamento, origem'),
       sb.from('etapas_aluno').select('id, nome, cor, tipo'),
-      selecionarTudo('vendas_servico', 'id, aluno_id, servico_nome, quantidade, valor_total, data_venda, status'),
+      selecionarTudo('vendas_servico', 'id, aluno_id, servico_nome, servico_tipo, quantidade, valor_total, data_venda, status'),
       selecionarTudo('contas_receber', 'id, venda_servico_id, valor, data_vencimento, status, forma_pagamento', 'id', [['origem', 'servico']]),
     ]);
     const erro = rA.error || rP.error || rE.error;
