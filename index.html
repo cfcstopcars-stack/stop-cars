@@ -538,7 +538,7 @@
           <input type="text" id="alunoSearchInput" placeholder="Buscar por nome ou telefone...">
           <select id="alunoFilterCategoria"><option value="todos">Todas as categorias</option></select>
           <button class="btn btn-yellow" id="btnNovoAluno">+ Novo Aluno</button>
-          <button class="btn btn-ghost" id="btnVendaServico">+ Nova venda</button>
+          <button class="btn btn-primary" id="btnVendaServico">Registrar venda</button>
           <div class="toolbar-right">
             <button class="btn btn-ghost" id="btnAlunoStages">Gerenciar etapas</button>
           </div>
@@ -600,6 +600,7 @@
             <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
               <button class="btn btn-ghost" id="btnCadAlunosCsv">Exportar CSV</button>
               <button class="btn btn-yellow" id="btnCadNovoAluno">+ Novo Aluno</button>
+              <button class="btn btn-primary" id="btnCadRegistrarVenda">Registrar venda</button>
             </div>
           </div>
           <div class="table-wrap">
@@ -650,7 +651,7 @@
         </div>
 
         <div class="subview" id="subview-cad-servicos">
-          <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Tudo o que a autoescola vende: pacotes de CNH e serviços avulsos (aulas extras, reciclagem, taxa de reprova...). Eles aparecem na tela <b>+ Nova venda</b> (em Alunos) e no Dashboard de Vendas. Um serviço <b>inativo</b> deixa de ser oferecido em novas vendas, mas o histórico das vendas já feitas continua.</div>
+          <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Tudo o que a autoescola vende: pacotes de CNH e serviços avulsos (aulas extras, reciclagem, taxa de reprova...). Eles aparecem na tela <b>Registrar venda</b> (em Alunos) e no Dashboard de Vendas. Um serviço <b>inativo</b> deixa de ser oferecido em novas vendas, mas o histórico das vendas já feitas continua.</div>
           <div class="filter-bar" id="servicosNovoBar">
             <input type="text" id="novoServicoNome" placeholder="Nome do serviço (ex: Aula de baliza)" style="min-width:260px;">
             <input type="number" id="novoServicoValor" min="0" step="0.01" placeholder="Valor sugerido (opcional)" style="max-width:200px;">
@@ -946,7 +947,7 @@
             </div>
             <div style="margin-top:10px;"><button class="btn btn-ghost" id="btnVendasServCsv">Exportar vendas (CSV)</button></div>
             <div class="nota-rodape">
-              <b>Como ler:</b> cada venda registrada em Alunos → <b>+ Nova venda</b> no mês conta como uma venda, seja pacote de CNH ou serviço (vendas canceladas não entram).
+              <b>Como ler:</b> cada venda registrada em Alunos → <b>Registrar venda</b> no mês conta como uma venda, seja pacote de CNH ou serviço (vendas canceladas não entram).
               O prazo médio é contado a partir da data da venda, e o ticket médio é o valor médio por venda.
             </div>
           </div>
@@ -1452,7 +1453,7 @@
       <div id="afServicosBox" style="display:none;">
         <div class="section-title" style="margin-top:18px;">Vendas deste aluno</div>
         <div id="afServicosLista" class="cell-muted">Carregando…</div>
-        <button type="button" class="btn btn-ghost" id="btnAfNovaVenda" style="margin-top:8px;">+ Nova venda</button>
+        <button type="button" class="btn btn-ghost" id="btnAfNovaVenda" style="margin-top:8px;">Registrar venda</button>
       </div>
       <div class="modal-actions">
         <div class="left-actions">
@@ -1661,7 +1662,7 @@
 <!-- Venda de serviço modal -->
 <div class="modal-overlay" id="vendaServicoModalOverlay">
   <div class="modal modal-wide">
-    <h2>Nova venda</h2>
+    <h2>Registrar venda</h2>
     <div style="font-size:12.5px;color:var(--muted);margin:-8px 0 14px;">Registra a venda no cadastro do aluno e gera os lançamentos em Contas a Receber.</div>
     <form id="vendaServicoForm" novalidate>
       <div class="form-row">
@@ -2687,9 +2688,6 @@
         <td class="num">${formatDateBR(a.data_matricula)}</td>
         <td class="num">${Number(a.valor_total_cnh) > 0 ? formatMoney(a.valor_total_cnh) : vazio}</td>
         <td class="cell-actions">
-          <button class="icon-btn" data-act="venda-cad-aluno" data-id="${escapeHtml(a.id)}" title="Venda de serviço">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1.2 1.1-2 2.5-2s2.5.8 2.5 2-1.1 1.7-2.5 2-2.5.8-2.5 2 1.1 2 2.5 2 2.5-.8 2.5-2"/></svg>
-          </button>
           <button class="icon-btn" data-act="edit-cad-aluno" data-id="${escapeHtml(a.id)}" title="Editar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
           </button>
@@ -2697,13 +2695,13 @@
       </tr>`;
     }).join('');
     tbody.querySelectorAll('[data-act="edit-cad-aluno"]').forEach(btn=> btn.addEventListener('click', ()=> openAlunoModal(btn.dataset.id)));
-    tbody.querySelectorAll('[data-act="venda-cad-aluno"]').forEach(btn=> btn.addEventListener('click', ()=> abrirVendaServico(btn.dataset.id)));
   }
   ['cadAlunoSearch','cadAlunoCategoria','cadAlunoEtapa','cadAlunoInstrutor','cadAlunoTipo','cadAlunoOrdem'].forEach(id=>{
     document.getElementById(id).addEventListener('input', renderCadAlunosTable);
     document.getElementById(id).addEventListener('change', renderCadAlunosTable);
   });
   document.getElementById('btnCadNovoAluno').addEventListener('click', ()=> openAlunoModal(null));
+  document.getElementById('btnCadRegistrarVenda').addEventListener('click', ()=> abrirVendaServico());
   document.getElementById('btnCadAlunosCsv').addEventListener('click', ()=>{
     const lista = filteredCadAlunos();
     if(!lista.length){ showToast('Nenhum aluno na lista para exportar.'); return; }
@@ -4277,7 +4275,7 @@
         <span class="badge" style="background:${cat.cor}">${cat.id}</span>
         ${aluno.renach ? `<span class="badge outline">RENACH ${escapeHtml(aluno.renach)}</span>` : ''}
         ${aluno.instrutor ? `<span class="badge outline">${escapeHtml(aluno.instrutor)}</span>` : ''}
-        ${alunoSemVenda(aluno) ? '<span class="badge" style="background:#b8272c" title="Nenhuma venda registrada para este aluno. Abra o cadastro e use + Nova venda.">Sem venda</span>' : ''}
+        ${alunoSemVenda(aluno) ? '<span class="badge" style="background:#b8272c" title="Nenhuma venda registrada para este aluno. Abra o cadastro e use Registrar venda.">Sem venda</span>' : ''}
       </div>
       <div class="lc-meta">
         <span>${escapeHtml(aluno.telefone)} · ${daysSince(aluno.etapa_desde)} na etapa</span>
