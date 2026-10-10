@@ -610,7 +610,14 @@
               <option value="recentes">Ordem: matrícula mais recente</option>
               <option value="antigos">Ordem: matrícula mais antiga</option>
               <option value="valor">Ordem: maior valor da CNH</option>
+              <option value="parado">Ordem: mais tempo na etapa</option>
+              <option value="atraso">Ordem: maior valor em atraso</option>
             </select>
+            <select id="cadAlunoFinanceiro" title="Situação das parcelas">
+              <option value="todos">Todas as situações</option>
+              <option value="atraso">Com parcela em atraso</option>
+            </select>
+            <input type="number" id="cadAlunoParado" min="1" step="1" placeholder="Parado na etapa há mais de… dias" title="Mostra só alunos que estão na mesma etapa há mais de X dias (não conta CNH emitida nem desistentes)" style="max-width:250px;">
           </div>
           <div class="period-quick" data-module="cad-alunos">
             <button data-preset="mes-atual">Matriculados este mês</button>
@@ -2685,7 +2692,11 @@
     const instr = document.getElementById('cadAlunoInstrutor').value;
     const tipo = document.getElementById('cadAlunoTipo').value;
     const ordem = document.getElementById('cadAlunoOrdem').value;
+    const soAtraso = document.getElementById('cadAlunoFinanceiro').value === 'atraso';
+    const paradoMin = parseInt(document.getElementById('cadAlunoParado').value);
     const lista = alunos.filter(a=>{
+      if(soAtraso && !(alunosAtraso && alunosAtraso.has(a.id))) return false;
+      if(paradoMin > 0){ const d = diasParadoNaEtapa(a); if(d === null || d <= paradoMin) return false; }
       if(tipo === 'servico' && !ehClienteServico(a)) return false;
       if(tipo === 'cnh' && ehClienteServico(a)) return false;
       if(cat !== 'todas' && a.categoria !== cat) return false;
@@ -2706,6 +2717,8 @@
     if(ordem === 'recentes') lista.sort((x,y)=> String(y.data_matricula||'').localeCompare(String(x.data_matricula||'')) || porNome(x,y));
     else if(ordem === 'antigos') lista.sort((x,y)=> String(x.data_matricula||'9999').localeCompare(String(y.data_matricula||'9999')) || porNome(x,y));
     else if(ordem === 'valor') lista.sort((x,y)=> Number(y.valor_total_cnh||0) - Number(x.valor_total_cnh||0) || porNome(x,y));
+    else if(ordem === 'parado') lista.sort((x,y)=> (diasParadoNaEtapa(y) ?? -1) - (diasParadoNaEtapa(x) ?? -1) || porNome(x,y));
+    else if(ordem === 'atraso') lista.sort((x,y)=> ((alunosAtraso && alunosAtraso.get(y.id)?.valor) || 0) - ((alunosAtraso && alunosAtraso.get(x.id)?.valor) || 0) || porNome(x,y));
     else lista.sort(porNome);
     return lista;
   }
@@ -2714,24 +2727,31 @@
     const tbody = document.getElementById('tbodyCadAlunos');
     const lista = filteredCadAlunos();
     updateHiddenCountNote('cadAlunoHiddenNote', alunos.length, alunos.length - alunos.filter(alunoCadForaDoPeriodo).length);
+    const filtroAtraso = document.getElementById('cadAlunoFinanceiro').value === 'atraso';
+    const totalAtraso = filtroAtraso && alunosAtraso ? lista.reduce((s,a)=> s + (alunosAtraso.get(a.id)?.valor || 0), 0) : 0;
     document.getElementById('cadAlunoResumo').innerHTML = `
-      <div class="fs-chip">Alunos na lista<b>${lista.length}</b></div>`;
+      <div class="fs-chip">Alunos na lista<b>${lista.length}</b></div>` +
+      (filtroAtraso && alunosAtraso ? `<div class="fs-chip">Total em atraso<b style="color:#b8272c;">${formatMoney(totalAtraso)}</b></div>` : '');
     if(!lista.length){
-      tbody.innerHTML = '<tr><td colspan="10" class="cell-muted">Nenhum aluno encontrado com esses filtros.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="10" class="cell-muted">${filtroAtraso && !alunosAtraso ? 'O filtro de atraso precisa de acesso ao Financeiro, indisponível para este perfil.' : 'Nenhum aluno encontrado com esses filtros.'}</td></tr>`;
       return;
     }
     const vazio = '<span class="cell-muted">—</span>';
     tbody.innerHTML = lista.map(a=>{
       const cat = categoriaById(a.categoria);
       const et = etapaAlunoById(a.stage_id);
+      const atr = alunosAtraso ? alunosAtraso.get(a.id) : null;
+      const parado = diasParadoNaEtapa(a);
+      const atrasoHtml = atr ? `<div style="margin-top:4px;"><span class="status-pill atrasado" title="${atr.parcelas} parcela(s) vencida(s); a mais antiga há ${atr.dias} dia(s)">Atraso ${formatMoney(atr.valor)} · ${atr.dias}d</span></div>` : '';
+      const paradoHtml = parado !== null ? `<div class="cell-muted">há ${parado} dia${parado === 1 ? '' : 's'}</div>` : '';
       return `<tr>
-        <td><button type="button" class="ficha-link" data-act="ficha-cad-aluno" data-id="${escapeHtml(a.id)}" title="Abrir a ficha do aluno">${escapeHtml(a.nome)}</button>${ehClienteServico(a) ? ' <span class="badge badge-servico">Cliente de serviço</span>' : ''}</td>
+        <td><button type="button" class="ficha-link" data-act="ficha-cad-aluno" data-id="${escapeHtml(a.id)}" title="Abrir a ficha do aluno">${escapeHtml(a.nome)}</button>${ehClienteServico(a) ? ' <span class="badge badge-servico">Cliente de serviço</span>' : ''}${atrasoHtml}</td>
         <td class="num">${a.telefone ? escapeHtml(a.telefone) : vazio}</td>
         <td><span class="badge" style="background:${cat.cor}">${cat.id}</span></td>
         <td>${a.renach ? escapeHtml(a.renach) : vazio}</td>
         <td class="num">${a.cpf ? escapeHtml(a.cpf) : vazio}</td>
         <td>${a.instrutor ? escapeHtml(a.instrutor) : vazio}</td>
-        <td>${et ? `<span class="etapa-tag"><i style="background:${escapeHtml(et.cor)}"></i>${escapeHtml(et.nome)}</span>` : (ehClienteServico(a) ? '<span class="cell-muted">Fora da jornada</span>' : '<span class="etapa-tag" style="color:#b8272c;font-weight:700;">Sem etapa</span>')}</td>
+        <td>${et ? `<span class="etapa-tag"><i style="background:${escapeHtml(et.cor)}"></i>${escapeHtml(et.nome)}</span>` : (ehClienteServico(a) ? '<span class="cell-muted">Fora da jornada</span>' : '<span class="etapa-tag" style="color:#b8272c;font-weight:700;">Sem etapa</span>')}${paradoHtml}</td>
         <td class="num">${formatDateBR(a.data_matricula)}</td>
         <td class="num">${Number(a.valor_total_cnh) > 0 ? formatMoney(a.valor_total_cnh) : vazio}</td>
         <td class="cell-actions">
@@ -2744,7 +2764,7 @@
     tbody.querySelectorAll('[data-act="edit-cad-aluno"]').forEach(btn=> btn.addEventListener('click', ()=> openAlunoModal(btn.dataset.id)));
     tbody.querySelectorAll('[data-act="ficha-cad-aluno"]').forEach(btn=> btn.addEventListener('click', ()=> abrirFichaAluno(btn.dataset.id)));
   }
-  ['cadAlunoSearch','cadAlunoCategoria','cadAlunoEtapa','cadAlunoInstrutor','cadAlunoTipo','cadAlunoOrdem'].forEach(id=>{
+  ['cadAlunoSearch','cadAlunoCategoria','cadAlunoEtapa','cadAlunoInstrutor','cadAlunoTipo','cadAlunoOrdem','cadAlunoFinanceiro','cadAlunoParado'].forEach(id=>{
     document.getElementById(id).addEventListener('input', renderCadAlunosTable);
     document.getElementById(id).addEventListener('change', renderCadAlunosTable);
   });
@@ -2754,8 +2774,8 @@
     const lista = filteredCadAlunos();
     if(!lista.length){ showToast('Nenhum aluno na lista para exportar.'); return; }
     baixarCsv(`alunos-stopcars-${hojeISO()}.csv`,
-      ['Nome','Telefone','Categoria','RENACH','CPF','Instrutor','Tipo de cadastro','Etapa','Data da matrícula','Valor da CNH','Observações'],
-      lista.map(a=>[a.nome, a.telefone, a.categoria, a.renach, a.cpf, a.instrutor, ehClienteServico(a) ? 'Cliente de serviço' : 'Aluno da CNH', ehClienteServico(a) ? 'Fora da jornada' : (etapaAlunoById(a.stage_id)?.nome || 'Sem etapa'), dataBR(a.data_matricula), a.valor_total_cnh ? numeroCsv(a.valor_total_cnh) : '', a.observacoes]));
+      ['Nome','Telefone','Categoria','RENACH','CPF','Instrutor','Tipo de cadastro','Etapa','Dias na etapa','Valor em atraso','Dias de atraso','Data da matrícula','Valor da CNH','Observações'],
+      lista.map(a=>[a.nome, a.telefone, a.categoria, a.renach, a.cpf, a.instrutor, ehClienteServico(a) ? 'Cliente de serviço' : 'Aluno da CNH', ehClienteServico(a) ? 'Fora da jornada' : (etapaAlunoById(a.stage_id)?.nome || 'Sem etapa'), diasParadoNaEtapa(a) ?? '', (alunosAtraso && alunosAtraso.get(a.id)) ? numeroCsv(alunosAtraso.get(a.id).valor) : '', (alunosAtraso && alunosAtraso.get(a.id)) ? alunosAtraso.get(a.id).dias : '', dataBR(a.data_matricula), a.valor_total_cnh ? numeroCsv(a.valor_total_cnh) : '', a.observacoes]));
     showToast(lista.length + ' aluno(s) exportado(s).');
   });
 
@@ -4349,12 +4369,38 @@
   async function carregarAlunosComVenda(){
     const [rV, rP] = await Promise.all([
       selecionarTudo('vendas_servico', 'id, aluno_id, status'),
-      selecionarTudo('contas_receber', 'id, aluno_id'),
+      selecionarTudo('contas_receber', 'id, aluno_id, valor, status, data_vencimento'),
     ]);
+    // O atraso só depende de Contas a Receber; o aviso "Sem venda" precisa também das vendas.
+    alunosAtraso = rP.error ? null : calcularAtrasoPorAluno(rP.data, hojeISO());
     if(rV.error || rP.error){ alunosComVenda = null; return; }
     alunosComVenda = new Set();
     rV.data.forEach(v => { if(v.aluno_id && v.status !== 'cancelada') alunosComVenda.add(v.aluno_id); });
     rP.data.forEach(p => { if(p.aluno_id) alunosComVenda.add(p.aluno_id); });
+  }
+  // Parcelas em atraso por aluno: { valor, parcelas, dias (da mais antiga) }. null = sem acesso ao financeiro.
+  let alunosAtraso = null;
+  function calcularAtrasoPorAluno(parcelas, hoje){
+    const mapa = new Map();
+    (parcelas || []).forEach(p => {
+      const venc = String(p.data_vencimento || '').slice(0,10);
+      if(!p.aluno_id || p.status === 'recebido' || !venc || venc >= hoje) return;
+      const x = mapa.get(p.aluno_id) || { valor: 0, parcelas: 0, dias: 0 };
+      x.valor = Math.round((x.valor + Number(p.valor || 0)) * 100) / 100;
+      x.parcelas++;
+      x.dias = Math.max(x.dias, diasEntre(venc, hoje));
+      mapa.set(p.aluno_id, x);
+    });
+    return mapa;
+  }
+  // Dias na etapa atual. null para quem não está "andando" na jornada: cliente de serviço,
+  // sem etapa, ou em etapa encerrada (CNH emitida / desistente).
+  function diasParadoNaEtapa(a, agora){
+    if(!a || ehClienteServico(a) || !a.etapa_desde) return null;
+    const et = etapaAlunoById(a.stage_id);
+    if(!et || et.tipo === 'ganho' || et.tipo === 'perdido') return null;
+    const d = Math.floor(((agora || Date.now()) - new Date(a.etapa_desde).getTime()) / 86400000);
+    return isNaN(d) ? null : Math.max(0, d);
   }
   function alunoSemVenda(a){
     if(!alunosComVenda || !a || ehClienteServico(a)) return false;
