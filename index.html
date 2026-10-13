@@ -2135,7 +2135,7 @@
   function debug(msg){
     console.log('[Stop Cars]', msg);
   }
-  const APP_VERSION = 'build 06/10/2026 · pacote 4';
+  const APP_VERSION = 'build 13/10/2026 · pacote 5';
   debug('Carregando… [' + APP_VERSION + ']');
   document.getElementById('appVersionFooter').textContent = 'Stop Cars · ' + APP_VERSION;
   try{
@@ -2983,13 +2983,16 @@
     // Pacotes de CNH primeiro, depois os serviços avulsos.
     const opcoes = lista => lista.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.nome)}</option>`).join('');
     const pacotes = ativos.filter(ehPacoteCnh), avulsos = ativos.filter(s => !ehPacoteCnh(s));
+    // O serviço NÃO vem pré-escolhido: a venda só existe se alguém escolher o serviço de propósito.
+    // (Antes abria já com o 1º pacote e o valor dele, e qualquer envio acidental registrava essa venda.)
     gid('vsServico').innerHTML =
+      '<option value="">Selecione o serviço…</option>' +
       (pacotes.length ? `<optgroup label="Pacotes de CNH">${opcoes(pacotes)}</optgroup>` : '') +
       (avulsos.length ? `<optgroup label="Serviços">${opcoes(avulsos)}</optgroup>` : '');
-    const primeiro = vsServicoSelecionado() || ativos[0];
+    gid('vsServico').value = '';
     gid('vsQtd').value = 1;
-    gid('vsValorUnit').value = primeiro.valor_padrao ?? '';
-    gid('vsValorTotal').value = primeiro.valor_padrao ?? '';
+    gid('vsValorUnit').value = '';
+    gid('vsValorTotal').value = '';
     gid('vsParcelas').value = 1;
     gid('vsPrimeiroVencimento').value = hojeISO();
     gid('vsForma').value = 'Pix';
@@ -3016,6 +3019,15 @@
   gid('btnCancelVendaServico').addEventListener('click', () => gid('vendaServicoModalOverlay').classList.remove('open'));
   gid('btnVendaServico').addEventListener('click', () => abrirVendaServico());
   gid('btnAfNovaVenda').addEventListener('click', () => { if(editingAlunoId) abrirVendaServico(editingAlunoId); });
+
+  // Enter dentro de um campo NÃO envia estes dois formulários. Sem isso, um Enter solto no formulário de venda
+  // (ou na matrícula) registrava a venda na hora, sem ninguém clicar no botão. O envio continua pelos botões
+  // "Registrar venda" e "Matricular".
+  ['vendaServicoForm', 'matriculaForm'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if(e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault();
+    });
+  });
 
   // Desfaz o que a venda já gravou (venda primeiro, depois a pessoa cadastrada na hora), para nunca sobrar registro pela metade.
   async function desfazerVendaServico(vendaId, alunoCriadoId){
